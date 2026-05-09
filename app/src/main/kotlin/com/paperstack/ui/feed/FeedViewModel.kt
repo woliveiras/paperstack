@@ -116,4 +116,10 @@ class FeedViewModel @Inject constructor(
         _state.update { FeedState(isLoading = true) }
         fetchInitial(category)
     }
+
+    fun refresh(category: String) {
+        if (_state.value.isLoading) return
+        _state.update { FeedState(isLoading = true) }
+        fetchInitial(category)
+    }
 }

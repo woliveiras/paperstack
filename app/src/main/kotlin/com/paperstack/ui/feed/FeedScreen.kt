@@ -28,6 +28,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -94,11 +96,13 @@ fun FeedScreen(
                     modifier = Modifier.padding(innerPadding),
                 )
                 else -> FeedContent(
-                    state = state,
-                    onPaperClick = onPaperClick,
-                    onLoadMore = viewModel::loadMore,
-                    modifier = Modifier.padding(innerPadding),
-                )
+                        state = state,
+                        isRefreshing = state.isLoading && state.visiblePapers.isNotEmpty(),
+                        onRefresh = { viewModel.refresh(settings.activeCategory) },
+                        onPaperClick = onPaperClick,
+                        onLoadMore = viewModel::loadMore,
+                        modifier = Modifier.padding(innerPadding),
+                    )
             }
         }
     }
@@ -129,15 +133,25 @@ private fun ErrorContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FeedContent(
     state: FeedState,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onPaperClick: (Paper) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
+    val pullState = rememberPullToRefreshState()
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        state = pullState,
         modifier = modifier.fillMaxSize(),
+    ) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
         items(items = state.visiblePapers, key = { it.id }) { paper ->
@@ -174,7 +188,8 @@ private fun FeedContent(
                 }
             }
         }
-    }
+    } // LazyColumn
+    } // PullToRefreshBox
 }
 
 @Composable
