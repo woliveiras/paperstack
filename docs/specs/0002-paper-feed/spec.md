@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0002"
 title: Paper Feed
 depends_on: ["0001"]
@@ -111,22 +111,22 @@ data class FeedState(
 
 ## Acceptance criteria
 
-- [ ] AC1: The feed screen renders on first load with 15 paper cards (given network access).
-- [ ] AC2: Each card shows title, at least one author, date, and abstract excerpt.
-- [ ] AC3: Cards with `arxiv:comment` show the conference/journal info.
-- [ ] AC4: Tapping "Load more" shows the buffered 15 papers instantly (no loading delay).
-- [ ] AC5: After "Load more", a background fetch starts to refill the buffer.
-- [ ] AC6: "Load more" button is hidden when `visiblePapers.length >= totalResults` and the buffer is empty.
-- [ ] AC7: A loading spinner is shown on initial fetch; 15 cards are shown on success.
-- [ ] AC8: A retry button appears when the initial fetch fails.
-- [ ] AC9: A silent background prefetch failure does not show an error; the next "Load more" triggers a fresh fetch with a loading state.
-- [ ] AC10: `ArxivApiService` — `fetchPapers` is covered by unit tests with a mocked OkHttp client (success, empty result, 503 retry).
-- [ ] AC11: `FeedViewModel` — `fetchInitial` and `loadMore` buffer logic are covered by unit tests with MockK + Turbine.
-- [ ] AC12: The Drawer opens on swipe-right and on tapping the menu icon.
-- [ ] AC13: The Drawer lists all categories from `settingsStore.settings.selectedCategories`; the active one is visually highlighted.
-- [ ] AC14: Tapping a category in the Drawer updates `activeCategory`, closes the Drawer, resets the feed, and loads papers for the new category.
-- [ ] AC15: The active category name is shown in the feed header.
-- [ ] AC16: Tapping "+ Add categories" in the Drawer opens the category selection screen with existing selections pre-checked.
+- [x] AC1: The feed screen renders on first load with 15 paper cards (given network access).
+- [x] AC2: Each card shows title, at least one author, date, and abstract excerpt.
+- [x] AC3: Cards with `arxiv:comment` show the conference/journal info.
+- [x] AC4: Tapping "Load more" shows the buffered 15 papers instantly (no loading delay).
+- [x] AC5: After "Load more", a background fetch starts to refill the buffer.
+- [x] AC6: "Load more" button is hidden when `visiblePapers.length >= totalResults` and the buffer is empty.
+- [x] AC7: A loading spinner is shown on initial fetch; 15 cards are shown on success.
+- [x] AC8: A retry button appears when the initial fetch fails.
+- [x] AC9: A silent background prefetch failure does not show an error; the next "Load more" triggers a fresh fetch with a loading state.
+- [x] AC10: `ArxivApiService` — `fetchPapers` is covered by unit tests with a mocked OkHttp client (success, empty result, 503 retry).
+- [x] AC11: `FeedViewModel` — `fetchInitial` and `loadMore` buffer logic are covered by unit tests with MockK + Turbine.
+- [x] AC12: The Drawer opens on swipe-right and on tapping the menu icon.
+- [x] AC13: The Drawer lists all categories from `settingsStore.settings.selectedCategories`; the active one is visually highlighted.
+- [x] AC14: Tapping a category in the Drawer updates `activeCategory`, closes the Drawer, resets the feed, and loads papers for the new category.
+- [x] AC15: The active category name is shown in the feed header.
+- [x] AC16: Tapping "+ Add categories" in the Drawer opens the category selection screen with existing selections pre-checked.
 
 ## Risks
 

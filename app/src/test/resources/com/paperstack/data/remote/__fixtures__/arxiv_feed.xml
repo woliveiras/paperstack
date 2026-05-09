@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
+      xmlns:arxiv="http://arxiv.org/schemas/atom">
+  <title type="html">ArXiv Query: search_query=cat:cs.AI</title>
+  <id>http://arxiv.org/api/query?search_query=cat:cs.AI&amp;start=0&amp;max_results=2</id>
+  <opensearch:totalResults>1234</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <opensearch:itemsPerPage>2</opensearch:itemsPerPage>
+
+  <entry>
+    <id>http://arxiv.org/abs/2605.06667v1</id>
+    <title>Advances in Large Language Models for Code Generation</title>
+    <summary>We present a comprehensive survey of large language models applied to code generation tasks, covering benchmarks, training strategies, and evaluation protocols. Our findings show significant improvements over previous baselines.</summary>
+    <published>2026-05-01T12:00:00Z</published>
+    <updated>2026-05-02T08:30:00Z</updated>
+    <author>
+      <name>Alice Martin</name>
+    </author>
+    <author>
+      <name>Bob Chen</name>
+    </author>
+    <link rel="alternate" type="text/html" href="http://arxiv.org/abs/2605.06667v1"/>
+    <link rel="related" type="application/pdf" href="https://arxiv.org/pdf/2605.06667v1"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <arxiv:primary_category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <arxiv:comment>Accepted at ICML 2026</arxiv:comment>
+  </entry>
+
+  <entry>
+    <id>http://arxiv.org/abs/2605.07890v2</id>
+    <title>Efficient Transformers: A Survey</title>
+    <summary>This paper surveys efficient transformer architectures designed to reduce computational complexity while maintaining model quality. We categorize methods by their approach to attention mechanism approximation.</summary>
+    <published>2026-04-28T10:00:00Z</published>
+    <updated>2026-05-01T14:00:00Z</updated>
+    <author>
+      <name>Carol White</name>
+    </author>
+    <link rel="alternate" type="text/html" href="http://arxiv.org/abs/2605.07890v2"/>
+    <link rel="related" type="application/pdf" href="https://arxiv.org/pdf/2605.07890v2"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <arxiv:primary_category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+  </entry>
+</feed>

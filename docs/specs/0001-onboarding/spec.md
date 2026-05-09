@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0001"
 title: Onboarding
 depends_on: []
@@ -89,17 +89,17 @@ val ARXIV_CATEGORIES: List<ArxivCategory> = listOf(
 
 ## Acceptance criteria
 
-- [ ] AC1: On fresh install, the onboarding screen is shown before the feed.
-- [ ] AC2: Submitting an empty or whitespace-only name is not allowed (button disabled).
-- [ ] AC3: A name longer than 50 characters is not allowed.
-- [ ] AC4: The category list renders all arXiv categories grouped by domain with checkboxes.
-- [ ] AC5: The "Confirm" button is disabled until at least one category is checked.
-- [ ] AC6: Multiple categories can be selected simultaneously with no upper limit.
-- [ ] AC7: After completing onboarding, `settingsStore.settings.onboardingCompleted` is `true`.
-- [ ] AC8: After completing onboarding, `settingsStore.settings.selectedCategories` contains all checked categories.
-- [ ] AC9: `settingsStore.settings.activeCategory` is set to the first category in `selectedCategories`.
-- [ ] AC10: After completing onboarding, reopening the app goes directly to the feed — not onboarding.
-- [ ] AC11: `SettingsRepository` is covered by unit tests for `completeOnboarding`, `addCategories`, `removeCategory`, and `isOnboardingCompleted`.
+- [x] AC1: On fresh install, the onboarding screen is shown before the feed.
+- [x] AC2: Submitting an empty or whitespace-only name is not allowed (button disabled).
+- [x] AC3: A name longer than 50 characters is not allowed.
+- [x] AC4: The category list renders all arXiv categories grouped by domain with checkboxes.
+- [x] AC5: The "Confirm" button is disabled until at least one category is checked.
+- [x] AC6: Multiple categories can be selected simultaneously with no upper limit.
+- [x] AC7: After completing onboarding, `settingsStore.settings.onboardingCompleted` is `true`.
+- [x] AC8: After completing onboarding, `settingsStore.settings.selectedCategories` contains all checked categories.
+- [x] AC9: `settingsStore.settings.activeCategory` is set to the first category in `selectedCategories`.
+- [x] AC10: After completing onboarding, reopening the app goes directly to the feed — not onboarding.
+- [x] AC11: `SettingsRepository` is covered by unit tests for `completeOnboarding`, `addCategories`, `removeCategory`, and `isOnboardingCompleted`.
 
 ## Risks
 

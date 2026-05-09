@@ -10,12 +10,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.paperstack.ui.feed.FeedScreen
 import com.paperstack.ui.onboarding.OnboardingScreen
 import com.paperstack.ui.theme.PaperstackTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -24,6 +26,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val mainViewModel: MainViewModel = hiltViewModel()
                 val startDestination by mainViewModel.startDestination.collectAsState()
+                val settings by mainViewModel.settings.collectAsState()
 
                 startDestination?.let { destination ->
                     NavHost(navController = navController, startDestination = destination) {
@@ -37,9 +40,17 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("feed") {
-                            // Placeholder — spec 0002
-                            androidx.compose.material3.Surface {
-                                androidx.compose.material3.Text("Feed — coming soon")
+                            settings?.let { s ->
+                                FeedScreen(
+                                    settings = s,
+                                    onPaperClick = { /* spec 0003 — navigate to detail */ },
+                                    onAddCategories = {
+                                        navController.navigate("onboarding")
+                                    },
+                                    onCategorySwitch = { code ->
+                                        mainViewModel.setActiveCategory(code)
+                                    },
+                                )
                             }
                         }
                     }

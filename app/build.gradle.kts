@@ -100,6 +100,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.coroutines.test)
     testImplementation(libs.robolectric)
+    testImplementation(libs.kxml2)
 
     // Instrumented tests
     androidTestImplementation(platform(libs.compose.bom))
