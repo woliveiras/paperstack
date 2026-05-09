@@ -4,9 +4,14 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.room.Room
 import com.paperstack.data.local.datastore.SettingsDataStore
+import com.paperstack.data.local.db.PaperstackDatabase
+import com.paperstack.data.local.db.RoomSavedPaperRepository
+import com.paperstack.data.local.db.SavedPaperDao
 import com.paperstack.data.remote.ArxivApiService
 import com.paperstack.data.remote.ArxivApiServiceImpl
+import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.data.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
@@ -27,6 +32,21 @@ object DataStoreModule {
     @Singleton
     fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
         context.settingsDataStore
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): PaperstackDatabase =
+        Room.databaseBuilder(context, PaperstackDatabase::class.java, "paperstack.db")
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideSavedPaperDao(db: PaperstackDatabase): SavedPaperDao = db.savedPaperDao()
 }
 
 @Module
@@ -56,4 +76,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindArxivApiService(impl: ArxivApiServiceImpl): ArxivApiService
+
+    @Binds
+    @Singleton
+    abstract fun bindSavedPaperRepository(impl: RoomSavedPaperRepository): SavedPaperRepository
 }

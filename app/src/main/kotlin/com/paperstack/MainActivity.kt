@@ -1,5 +1,6 @@
 package com.paperstack
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,11 +12,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.paperstack.ui.detail.DetailScreen
 import com.paperstack.ui.feed.FeedScreen
 import com.paperstack.ui.onboarding.CategoriesStep
 import com.paperstack.ui.onboarding.OnboardingScreen
 import com.paperstack.ui.onboarding.OnboardingViewModel
 import com.paperstack.ui.theme.PaperstackTheme
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -46,7 +52,10 @@ class MainActivity : ComponentActivity() {
                             settings?.let { s ->
                                 FeedScreen(
                                     settings = s,
-                                    onPaperClick = { /* spec 0003 — navigate to detail */ },
+                                    onPaperClick = { paper ->
+                                        val paperJson = Uri.encode(Json.encodeToString(paper))
+                                        navController.navigate("detail/$paperJson")
+                                    },
                                     onAddCategories = {
                                         navController.navigate("add-categories")
                                     },
@@ -55,6 +64,12 @@ class MainActivity : ComponentActivity() {
                                     },
                                 )
                             }
+                        }
+                        composable(
+                            route = "detail/{paperJson}",
+                            arguments = listOf(navArgument("paperJson") { type = NavType.StringType }),
+                        ) {
+                            DetailScreen(onBack = { navController.popBackStack() })
                         }
                         composable("add-categories") {
                             val addViewModel: OnboardingViewModel = hiltViewModel()

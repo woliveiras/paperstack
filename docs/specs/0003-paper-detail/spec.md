@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0003"
 title: Paper Detail
 depends_on: ["0002"]
@@ -62,14 +62,14 @@ Display the full details of a paper and provide entry points to save it and down
 
 ## Acceptance criteria
 
-- [ ] AC1: The full abstract is visible without truncation.
-- [ ] AC2: All authors are listed (no "et al." truncation on this screen).
-- [ ] AC3: Conference/journal info is displayed when `comment` is present.
-- [ ] AC4: The "Save" button shows the correct saved state on mount.
-- [ ] AC5: Tapping "Save" on an unsaved paper saves it and updates the button to "Saved".
-- [ ] AC6: Tapping "Saved" on a saved paper removes it and updates the button to "Save".
-- [ ] AC7: Tapping "Read online" opens `https://arxiv.org/abs/<id>` in the system browser.
-- [ ] AC8: Tapping "Download PDF" triggers the download flow (spec 0005).
+- [x] AC1: The full abstract is visible without truncation.
+- [x] AC2: All authors are listed (no "et al." truncation on this screen).
+- [x] AC3: Conference/journal info is displayed when `comment` is present.
+- [x] AC4: The "Save" button shows the correct saved state on mount.
+- [x] AC5: Tapping "Save" on an unsaved paper saves it and updates the button to "Saved".
+- [x] AC6: Tapping "Saved" on a saved paper removes it and updates the button to "Save".
+- [x] AC7: Tapping "Read online" opens `https://arxiv.org/abs/<id>` in the system browser.
+- [x] AC8: Tapping "Download PDF" triggers the download flow (spec 0005).
 
 ## Risks
 

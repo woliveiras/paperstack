@@ -1,5 +1,8 @@
 package com.paperstack.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Paper(
     val id: String,
     val title: String,
