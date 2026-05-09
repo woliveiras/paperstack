@@ -1,0 +1,110 @@
+# PRD: Browse by Category
+
+## Status
+
+Approved
+
+## Problem statement
+
+Researchers, students, professors, and industry professionals who follow scientific literature have no simple, mobile-friendly way to view the latest arXiv papers filtered by the categories they care about. The arXiv website is not optimized for mobile and mixes all categories by default.
+
+## Design principle: local-first
+
+Paperstack is **fully local-first**. There are no accounts, no login, no backend, and no third-party auth integrations. All user preferences and saved data are stored on-device (AsyncStorage). The only external communication is read-only fetches to the arXiv public API.
+
+## Goals
+
+- [ ] The user completes onboarding (name + category) and lands on the feed without friction
+- [ ] The user can browse the latest papers from their chosen arXiv category
+- [ ] The user can read a paper's abstract directly in the app
+- [ ] The user can save papers they find interesting to revisit later
+- [ ] The user can download a paper's PDF for offline reading
+- [ ] The experience works without errors from first access onwards
+
+## Non-goals
+
+- Out of scope: authentication, accounts, or any login flow
+- Out of scope: any server-side backend or cloud sync
+- Out of scope: search by text or author
+- Out of scope: multiple simultaneous categories (planned for v2)
+- Out of scope: push notifications
+
+## Personas
+
+| Persona | Profile |
+|---------|---------|
+| Researcher | Follows one or more arXiv categories daily to stay up to date |
+| Industry professional | Wants to keep up with scientific studies without navigating the arXiv website |
+| Student / Professor | Uses arXiv as a reference source and wants quick access to the latest papers |
+
+## User stories
+
+1. As a first-time user, I want to tell the app my name and pick one arXiv category during onboarding so that my feed is immediately relevant.
+2. As a researcher, I want to see the latest papers from my chosen arXiv category so that I can stay up to date quickly.
+3. As a user, I want to read a paper's abstract before opening it so that I can decide if the full read is worth it.
+4. As a user, I want to save a paper to my reading list so that I can come back to it later.
+5. As a user, I want to download a paper's PDF to my device so that I can read it offline at any time.
+6. As a user, I want the app to work without errors from start to finish so that I can trust it as a tool.
+
+## Proposed solution
+
+### User journey (v1)
+
+```
+First launch
+  └─▶ Onboarding
+        ├─ Enter display name
+        └─ Pick one arXiv category from the full list
+              └─▶ Feed screen
+                    ├─ List of latest 15 papers ("Load more" for next page)
+                    ├─ Each card: title, authors, date, abstract excerpt,
+                    │            conference/journal when available
+                    └─ Tap paper
+                          ├─ Full abstract view
+                          ├─ Save to reading list
+                          └─ Download PDF to device
+```
+
+### Local-first storage
+
+All data lives on-device:
+- Display name and selected category → AsyncStorage via Zustand `settingsStore`
+- Saved papers → AsyncStorage via Zustand `savedStore`
+- Downloaded PDFs → device file system via `expo-file-system`
+
+No backend. No sync. No account required.
+
+### Feed
+
+The feed fetches from the arXiv API using the user's selected category. Each page loads **15 papers**. Manual pagination via a "Load more" button (no infinite scroll). When a paper includes conference or journal information (`arxiv:comment`), it is displayed on the card.
+
+### v2 note
+
+In v2, the user will be able to select **multiple categories**. The feed will merge and sort results by submission date. This is explicitly out of scope for v1.
+
+## Success metrics
+
+| Metric | Criterion |
+|--------|-----------|
+| Zero crashes | No crash from first access through downloading a PDF |
+| Onboarding completed | User reaches the feed after onboarding with no errors |
+| Papers loaded | List displays ≥1 paper from the category within 5 seconds on a normal connection |
+| Save works | Paper appears in reading list immediately after saving |
+| PDF downloaded | PDF file is saved to device and accessible offline |
+
+## Open questions
+
+All resolved. ✅
+
+| Question | Decision |
+|----------|----------|
+| Papers per page? | 15 |
+| Default category? | None — user chooses on first launch (mandatory onboarding) |
+| Pagination or infinite scroll? | "Load more" button |
+| Conference/journal on card? | Yes, whenever available in the `arxiv:comment` field |
+
+## References
+
+- arXiv API skill: [.github/skills/arxiv-api/SKILL.md](../../.github/skills/arxiv-api/SKILL.md)
+- arXiv API docs: https://info.arxiv.org/help/api/index.html
+
