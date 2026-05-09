@@ -10,14 +10,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -33,6 +37,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -157,6 +163,66 @@ fun DetailScreen(
                         Text("Read online")
                     }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                when (val dl = state.downloadState) {
+                    is DownloadState.Idle -> OutlinedButton(
+                        onClick = { viewModel.download(paper) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            Icons.Filled.Download,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                        Text("Download PDF")
+                    }
+
+                    is DownloadState.Downloading -> OutlinedButton(
+                        onClick = {},
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        CircularProgressIndicator(
+                            progress = { dl.progress },
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(end = 4.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        val pct = (dl.progress * 100).toInt()
+                        Text(if (pct > 0) "Downloading $pct%" else "Downloading…")
+                    }
+
+                    is DownloadState.Downloaded -> OutlinedButton(
+                        onClick = { viewModel.openPdf(paper, context) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            Icons.Filled.PictureAsPdf,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                        Text("Open PDF")
+                    }
+
+                    is DownloadState.Error -> Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = dl.message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OutlinedButton(
+                            onClick = { viewModel.download(paper) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("Retry")
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }

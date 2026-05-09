@@ -101,6 +101,7 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.kxml2)
+    testImplementation(libs.okhttp.mockwebserver)
 
     // Instrumented tests
     androidTestImplementation(platform(libs.compose.bom))
