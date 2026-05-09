@@ -2,17 +2,17 @@
 name: arxiv-api
 description: >
   arXiv Atom/XML API integration patterns. Use when implementing or reviewing
-  any code in services/arxiv.ts or any file that calls the arXiv API.
+  any code in data/remote/ArxivApiService.kt or any file that calls the arXiv API.
   Trigger phrases: "arxiv api", "fetch papers", "query arxiv", "/arxiv-api",
-  or when editing services/arxiv.ts.
+  or when editing ArxivApiService.kt.
 applyTo:
-  - "services/arxiv*"
+  - "app/src/main/kotlin/com/paperstack/data/remote/**"
 ---
 
 # arXiv API
 
-All arXiv data access MUST go through `services/arxiv.ts`. No direct `fetch`
-calls to `export.arxiv.org` anywhere else in the codebase.
+All arXiv data access MUST go through `data/remote/ArxivApiService.kt`. No direct
+OkHttp calls to `export.arxiv.org` anywhere else in the codebase.
 
 ## Base URL
 
@@ -38,7 +38,15 @@ GET https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDa
 
 ## Response format
 
-The API returns **Atom/XML**. Use `fast-xml-parser` to parse it.
+The API returns **Atom/XML**. Use Android's built-in `XmlPullParser` to parse it.
+Do NOT use regex, string splitting, or third-party XML libraries.
+
+```kotlin
+// In ArxivApiService.kt
+val parser: XmlPullParser = Xml.newPullParser()
+parser.setInput(responseBody.byteStream(), "UTF-8")
+// Walk the event stream: START_TAG, TEXT, END_TAG
+```
 
 Key fields per `<entry>`:
 
@@ -59,7 +67,7 @@ Key fields per `<entry>`:
 
 - **Hard limit: 1 request per 3 seconds.**
 - Never fire parallel requests to the arXiv API.
-- Add `User-Agent: Paperstack/1.0 (contact@example.com)` header to every request.
+- Add `User-Agent: Paperstack/1.0 (contact@example.com)` header via OkHttp `Interceptor`.
 - Implement exponential backoff on 503 responses.
 
 ## Pagination
@@ -111,8 +119,8 @@ An empty result set returns 200 with `<opensearch:totalResults>0</opensearch:tot
 
 ## Anti-patterns
 
-- ❌ Calling `fetch('https://export.arxiv.org/...')` outside `services/arxiv.ts`
+- ❌ Calling OkHttp outside `data/remote/ArxivApiService.kt`
 - ❌ Requesting `max_results > 100`
 - ❌ Firing multiple requests in parallel
-- ❌ Parsing XML with regex or string splitting
+- ❌ Parsing XML with regex, string splitting, or third-party libraries
 - ❌ Ignoring rate limits on user-triggered refreshes

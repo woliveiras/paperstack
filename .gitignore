@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+# Signing configs
+*.keystore
+*.jks
+
+# Room schemas (commit if you want migration history)
+app/schemas/
+
+# Generated
+app/src/main/assets/
+
+# Logs
+*.log

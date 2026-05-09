@@ -33,16 +33,17 @@ Display the full details of a paper and provide entry points to save it and down
 - RF2: The screen displays: title, all authors, submission date, primary category, all categories, full abstract, and conference/journal info when available.
 - RF3: A "Save" button toggles the paper's saved state. If already saved, the button reads "Saved" (filled icon); otherwise "Save" (outline icon).
 - RF4: A "Download PDF" button initiates the PDF download (delegates to spec 0005).
-- RF5: A "Read online" button opens the arXiv abstract URL (`https://arxiv.org/abs/<id>`) in the system browser via `Linking.openURL`.
-- RF6: The "Save" button state reflects the current `savedStore` state on mount.
+- RF5: A "Read online" button opens the arXiv abstract URL (`https://arxiv.org/abs/<id>`) in the system browser via `Intent.ACTION_VIEW`.
+- RF6: The "Save" button state reflects the current `SavedPaperRepository.isSaved()` Flow on mount.
 
 ## Contracts
 
 ### Navigation params
 
-```ts
-// app/paper/[id].tsx
-// params: { paper: Paper }  — passed as JSON-serialized route param
+```kotlin
+// Navigation Compose route: "detail/{paperId}"
+// Paper passed via NavBackStackEntry arguments or ViewModel SavedStateHandle
+// DetailViewModel fetches Paper from SavedPaperRepository or feed cache by id
 ```
 
 ### Screen layout (logical)

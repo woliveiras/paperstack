@@ -30,8 +30,8 @@ Allow users to save and unsave papers, and view all saved papers in a dedicated 
 ## Functional requirements
 
 - RF1: Any paper can be saved from the feed card (long-press or dedicated button) or from the paper detail screen.
-- RF2: Saved papers are persisted via `savedStore` using Zustand `persist` middleware backed by AsyncStorage.
-- RF3: A "Saved" tab in the bottom navigation shows the full list of saved papers.
+- RF2: Saved papers are persisted via `SavedPaperRepository` backed by Room (SQLite).
+- RF3: A bottom nav item "Saved" shows the full list of saved papers.
 - RF4: The saved list renders the same card component as the feed.
 - RF5: Unsaving a paper from the saved list removes it immediately (optimistic update).
 - RF6: If the saved list is empty, an empty state message is shown ("No saved papers yet").
@@ -40,19 +40,19 @@ Allow users to save and unsave papers, and view all saved papers in a dedicated 
 
 ## Contracts
 
-### savedStore
+### SavedPaperRepository
 
-```ts
-// store/savedStore.ts
-interface SavedStore {
-  savedPapers: Paper[]
-  savePaper: (paper: Paper) => void
-  unsavePaper: (id: string) => void
-  isSaved: (id: string) => boolean
+```kotlin
+// data/repository/SavedPaperRepository.kt
+interface SavedPaperRepository {
+    fun getAll(): Flow<List<Paper>>
+    suspend fun save(paper: Paper)
+    suspend fun unsave(id: String)
+    fun isSaved(id: String): Flow<Boolean>
 }
 ```
 
-Persistence key: `@paperstack/saved`
+Persistence: Room table `saved_papers` (see android skill for `SavedPaperEntity` definition)
 
 ## Acceptance criteria
 
@@ -63,15 +63,15 @@ Persistence key: `@paperstack/saved`
 - [ ] AC5: Unsaving a paper from the saved list removes it from the list immediately.
 - [ ] AC6: The saved/unsaved state is consistent between the feed, detail screen, and saved list.
 - [ ] AC7: An empty state is shown when no papers are saved.
-- [ ] AC8: `savedStore` — `savePaper`, `unsavePaper`, and `isSaved` are covered by unit tests.
-- [ ] AC9: Persisted state is restored correctly on store rehydration (unit test with mocked AsyncStorage).
+- [ ] AC8: `SavedPaperRepository` — `save`, `unsave`, and `isSaved` are covered by unit tests with a mocked DAO.
+- [ ] AC9: Room DAO (`SavedPaperDao`) is covered by an instrumented test with an in-memory database.
 
 ## Risks
 
 | Risk | Mitigation |
 |------|-----------|
 | Stale paper data (saved paper's metadata becomes outdated) | Accept stale data in v1; refresh on open is v2 |
-| AsyncStorage size limits | Monitor; acceptable for v1 paper count |
+| Room database size | Acceptable for v1 paper count; monitor if needed |
 
 ## References
 

@@ -36,7 +36,7 @@ Display a paginated list of the latest arXiv papers for the user's active catego
 - RF5: The "Load more" button shows a subtle background-loading indicator only while the next batch is being fetched. It remains tappable — the buffered papers are available immediately.
 - RF6: If the initial fetch fails, a non-blocking error message is shown with a "Retry" button.
 - RF7: If the background prefetch fails, the buffer is empty. The next "Load more" tap triggers a fresh fetch (with a loading state) instead of showing an error proactively.
-- RF8: All API calls go through `services/arxiv.ts`. Max 1 request per 3 seconds. `User-Agent` header is set.
+- RF8: All API calls go through `data/remote/ArxivApiService.kt`. Max 1 request per 3 seconds. `User-Agent` header is set via OkHttp interceptor.
 - RF9: Tapping a paper card navigates to the paper detail screen (spec 0003).
 - RF10: The "Load more" button is hidden when `visiblePapers.length + buffer.length >= totalResults` and the buffer is exhausted.
 - RF11: A Drawer slides in from the left (swipe right or tap menu icon). It lists all categories from `settingsStore.settings.selectedCategories`. The active one is highlighted.
@@ -48,68 +48,66 @@ Display a paginated list of the latest arXiv papers for the user's active catego
 
 ### Paper data model
 
-```ts
-// types/paper.ts
-export interface Paper {
-  id: string           // e.g. "2605.06667"
-  title: string
-  authors: string[]
-  abstract: string
-  submittedDate: string  // ISO 8601
-  updatedDate: string    // ISO 8601
-  pdfUrl: string         // e.g. "https://arxiv.org/pdf/2605.06667"
-  categories: string[]   // e.g. ["cs.AI", "cs.LG"]
-  primaryCategory: string
-  comment?: string       // conference/journal info
+```kotlin
+// domain/model/Paper.kt
+data class Paper(
+    val id: String,               // e.g. "2605.06667"
+    val title: String,
+    val authors: List<String>,
+    val abstract: String,
+    val submittedDate: String,    // ISO 8601
+    val updatedDate: String,      // ISO 8601
+    val pdfUrl: String,           // e.g. "https://arxiv.org/pdf/2605.06667"
+    val categories: List<String>, // e.g. ["cs.AI", "cs.LG"]
+    val primaryCategory: String,
+    val comment: String? = null,  // conference/journal info
+)
+```
+
+### ArxivApiService
+
+```kotlin
+// data/remote/ArxivApiService.kt
+data class FetchPapersParams(
+    val category: String,
+    val start: Int,       // offset (0-based)
+    val pageSize: Int,    // always 30
+)
+
+data class FetchPapersResult(
+    val papers: List<Paper>,
+    val totalResults: Int,
+    val startIndex: Int,
+)
+
+interface ArxivApiService {
+    suspend fun fetchPapers(params: FetchPapersParams): Result<FetchPapersResult>
 }
 ```
 
-### arXiv service
+### FeedViewModel state
 
-```ts
-// services/arxiv.ts
-interface FetchPapersParams {
-  category: string
-  start: number      // offset (0-based)
-  pageSize: number   // always 30 (fetched in pairs of visible + buffer)
-}
-
-interface FetchPapersResult {
-  papers: Paper[]
-  totalResults: number
-  startIndex: number
-}
-
-export async function fetchPapers(params: FetchPapersParams): Promise<FetchPapersResult>
-```
-
-### feedStore
-
-```ts
-// store/feedStore.ts
-interface FeedStore {
-  visiblePapers: Paper[]     // papers shown in the list
-  buffer: Paper[]            // prefetched, not yet shown
-  nextStart: number          // next API offset to fetch
-  totalResults: number
-  isLoading: boolean         // initial load
-  isPrefetching: boolean     // background prefetch in progress
-  error: string | null
-  fetchInitial: () => Promise<void>  // uses activeCategory from settingsStore
-  loadMore: () => Promise<void>
-  reset: () => void          // called when activeCategory changes
-}
+```kotlin
+// ui/feed/FeedViewModel.kt
+data class FeedState(
+    val visiblePapers: List<Paper> = emptyList(),
+    val buffer: List<Paper> = emptyList(),
+    val nextStart: Int = 0,
+    val totalResults: Int = 0,
+    val isLoading: Boolean = false,
+    val isPrefetching: Boolean = false,
+    val error: String? = null,
+)
 ```
 
 **`loadMore` logic:**
 1. Move `buffer` → append to `visiblePapers`; clear `buffer`
-2. Fire background fetch for next 30 at `nextStart` (no await — user sees content immediately)
-3. On background fetch success: split into first 15 → visible append, next 15 → buffer; advance `nextStart`
+2. Fire background coroutine for next 30 at `nextStart` (non-blocking — user sees content immediately)
+3. On background fetch success: first 15 → visible, next 15 → buffer; advance `nextStart`
 
 **Category switch logic:**
-1. `settingsStore.setActiveCategory(code)` updates `activeCategory`
-2. `feedStore.reset()` clears `visiblePapers`, `buffer`, `nextStart`, `totalResults`
-3. `feedStore.fetchInitial()` fires for the new category
+1. `settingsRepository.setActiveCategory(code)` updates DataStore
+2. `FeedViewModel` observes `activeCategory` via Flow → triggers `reset()` + `fetchInitial()`
 
 ## Acceptance criteria
 
@@ -122,8 +120,8 @@ interface FeedStore {
 - [ ] AC7: A loading spinner is shown on initial fetch; 15 cards are shown on success.
 - [ ] AC8: A retry button appears when the initial fetch fails.
 - [ ] AC9: A silent background prefetch failure does not show an error; the next "Load more" triggers a fresh fetch with a loading state.
-- [ ] AC10: `services/arxiv.ts` — `fetchPapers` is covered by unit tests with mocked `fetch` (success, empty result, 503 retry).
-- [ ] AC11: `feedStore` — `fetchInitial` and `loadMore` buffer logic are covered by unit tests.
+- [ ] AC10: `ArxivApiService` — `fetchPapers` is covered by unit tests with a mocked OkHttp client (success, empty result, 503 retry).
+- [ ] AC11: `FeedViewModel` — `fetchInitial` and `loadMore` buffer logic are covered by unit tests with MockK + Turbine.
 - [ ] AC12: The Drawer opens on swipe-right and on tapping the menu icon.
 - [ ] AC13: The Drawer lists all categories from `settingsStore.settings.selectedCategories`; the active one is visually highlighted.
 - [ ] AC14: Tapping a category in the Drawer updates `activeCategory`, closes the Drawer, resets the feed, and loads papers for the new category.

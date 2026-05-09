@@ -30,37 +30,52 @@ Allow users to download a paper's PDF to the device file system and open it with
 ## Functional requirements
 
 - RF1: The "Download PDF" button on the paper detail screen (spec 0003) initiates the download.
-- RF2: Downloads are handled via `expo-file-system` (`FileSystem.downloadAsync`).
-- RF3: The PDF is saved to `FileSystem.documentDirectory + 'papers/<id>.pdf'`.
+- RF2: Downloads are handled via OkHttp streaming into the app's internal files directory.
+- RF3: The PDF is saved to `context.filesDir/papers/<id>.pdf`.
 - RF4: While downloading, a progress indicator replaces the "Download PDF" button.
-- RF5: On success, the button changes to "Open PDF" and the file is opened with `expo-sharing` or `Linking.openURL` with the local file URI.
+- RF5: On success, the button changes to "Open PDF" and the file is opened via `FileProvider` + `Intent.ACTION_VIEW`.
 - RF6: If the file already exists on disk, the "Download PDF" button is replaced with "Open PDF" on mount — no re-download.
 - RF7: On download error, an inline error message is shown with a "Retry" option.
-- RF8: The download state (idle / downloading / downloaded / error) is managed in a local component hook (`useDownload`), not in a global store.
+- RF8: The download state (idle / downloading / downloaded / error) is managed in `DetailViewModel`, not in a global repository.
 
 ## Contracts
 
-### useDownload hook
+### Download state in DetailViewModel
 
-```ts
-// hooks/useDownload.ts
-type DownloadState = 'idle' | 'downloading' | 'downloaded' | 'error'
-
-interface UseDownloadResult {
-  state: DownloadState
-  progress: number        // 0–1
-  download: () => Promise<void>
-  open: () => void
-  error: string | null
+```kotlin
+// ui/detail/DetailViewModel.kt
+sealed interface DownloadState {
+    data object Idle : DownloadState
+    data class Downloading(val progress: Float) : DownloadState  // 0f–1f
+    data object Downloaded : DownloadState
+    data class Error(val message: String) : DownloadState
 }
 
-export function useDownload(paper: Paper): UseDownloadResult
+// In DetailViewModel:
+val downloadState: StateFlow<DownloadState>
+fun download(paper: Paper)
+fun openPdf(paper: Paper, context: Context)
 ```
 
 ### File path convention
 
-```ts
-const localPath = FileSystem.documentDirectory + `papers/${paper.id}.pdf`
+```kotlin
+val localFile = File(context.filesDir, "papers/${paper.id}.pdf")
+```
+
+### FileProvider (AndroidManifest.xml)
+
+Required to open local files with external apps on Android 7+:
+```xml
+<provider
+    android:name="androidx.core.content.FileProvider"
+    android:authorities="com.paperstack.fileprovider"
+    android:exported="false"
+    android:grantUriPermissions="true">
+    <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_paths" />
+</provider>
 ```
 
 ### PDF URL
@@ -74,7 +89,7 @@ Use the versioned PDF URL from `paper.pdfUrl` (e.g. `https://arxiv.org/pdf/2605.
 - [ ] AC3: Tapping "Open PDF" opens the file in the device's native document viewer.
 - [ ] AC4: If the file already exists on disk, "Open PDF" is shown immediately without re-downloading.
 - [ ] AC5: A download error shows an error message and a "Retry" button.
-- [ ] AC6: `useDownload` — `download` and `open` are covered by unit tests with mocked `expo-file-system`.
+- [ ] AC6: `DetailViewModel` download logic is covered by unit tests with a mocked OkHttp client.
 - [ ] AC7: Concurrent taps on "Download PDF" do not trigger multiple parallel downloads.
 
 ## Risks
