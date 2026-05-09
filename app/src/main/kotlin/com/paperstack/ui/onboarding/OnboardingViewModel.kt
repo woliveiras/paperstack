@@ -67,13 +67,13 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    /** Saves only the new categories without changing name or onboarding status. */
+    /** Saves the full updated category selection (add + remove). */
     fun saveAddedCategories() {
         val current = _state.value
         _state.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
             try {
-                settingsRepository.addCategories(current.selectedCategories.toList())
+                settingsRepository.setCategories(current.selectedCategories.toList())
                 _state.update { it.copy(isSaving = false, isDone = true) }
             } catch (e: Exception) {
                 _state.update { it.copy(isSaving = false, error = e.message) }

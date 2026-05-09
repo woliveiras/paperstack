@@ -59,13 +59,17 @@ class SettingsDataStore @Inject constructor(
         }
     }
 
-    override suspend fun addCategories(categories: List<String>) {
+    override suspend fun setCategories(categories: List<String>) {
         dataStore.edit { prefs ->
             val current: List<String> = prefs[KEY_SELECTED_CATEGORIES]
                 ?.let { Json.decodeFromString(it) }
                 ?: emptyList()
-            val updated = (current + categories).distinct()
-            prefs[KEY_SELECTED_CATEGORIES] = Json.encodeToString(updated)
+            prefs[KEY_SELECTED_CATEGORIES] = Json.encodeToString(categories.distinct())
+            // If active category was removed, switch to first remaining
+            val active = prefs[KEY_ACTIVE_CATEGORY]
+            if (active != null && active !in categories && categories.isNotEmpty()) {
+                prefs[KEY_ACTIVE_CATEGORY] = categories.first()
+            }
         }
     }
 
