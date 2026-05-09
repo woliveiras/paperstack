@@ -65,3 +65,4 @@ types/            # Shared TypeScript types
 | `write-prd` | `/write-prd`, "write prd", "product requirements" |
 | `madr` | `/madr`, "new adr", "architecture decision" |
 | `unit-testing` | `/unit-test`, "write test", "unit test" |
+| `debug` | `/debug`, "debug", "não está funcionando", "erro em runtime" |
