@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.paperstack.data.remote.ArxivApiService
 import com.paperstack.data.remote.FetchPapersParams
 import com.paperstack.data.remote.FetchPapersResult
+import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.data.repository.SettingsRepository
 import com.paperstack.domain.model.Paper
 import com.paperstack.domain.model.Settings
@@ -35,6 +36,7 @@ class FeedViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val arxivApiService = mockk<ArxivApiService>()
     private val settingsRepository = mockk<SettingsRepository>()
+    private val savedPaperRepository = mockk<SavedPaperRepository>()
 
     private val settingsFlow = MutableStateFlow<Settings?>(null)
 
@@ -62,6 +64,7 @@ class FeedViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { settingsRepository.settings } returns settingsFlow
+        every { savedPaperRepository.observeAll() } returns kotlinx.coroutines.flow.flowOf(emptyList())
     }
 
     @AfterEach
@@ -69,7 +72,7 @@ class FeedViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(): FeedViewModel = FeedViewModel(arxivApiService, settingsRepository)
+    private fun createViewModel(): FeedViewModel = FeedViewModel(arxivApiService, settingsRepository, savedPaperRepository)
 
     @Nested
     inner class `Initial state` {
