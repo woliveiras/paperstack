@@ -10,6 +10,7 @@ data class FeedState(
     val isLoading: Boolean = false,
     val isPrefetching: Boolean = false,
     val error: String? = null,
+    val savedIds: Set<String> = emptySet(),
 ) {
     val hasMore: Boolean
         get() = visiblePapers.size + buffer.size < totalResults ||

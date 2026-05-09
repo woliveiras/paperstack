@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperstack.data.remote.ArxivApiService
 import com.paperstack.data.remote.FetchPapersParams
+import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.data.repository.SettingsRepository
+import com.paperstack.domain.model.Paper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -24,6 +27,7 @@ private const val VISIBLE_SIZE = 15
 class FeedViewModel @Inject constructor(
     private val arxivApiService: ArxivApiService,
     private val settingsRepository: SettingsRepository,
+    private val savedPaperRepository: SavedPaperRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FeedState())
@@ -33,6 +37,10 @@ class FeedViewModel @Inject constructor(
     private var currentCategory: String = ""
 
     init {
+        savedPaperRepository.observeAll()
+            .onEach { saved -> _state.update { it.copy(savedIds = saved.map { p -> p.id }.toSet()) } }
+            .launchIn(viewModelScope)
+
         settingsRepository.settings
             .filterNotNull()
             .map { it.activeCategory }
@@ -48,9 +56,9 @@ class FeedViewModel @Inject constructor(
 
         val cached = cache[category]
         if (cached != null) {
-            _state.value = cached
+            _state.value = cached.copy(savedIds = _state.value.savedIds)
         } else {
-            _state.value = FeedState(isLoading = true)
+            _state.value = FeedState(isLoading = true, savedIds = _state.value.savedIds)
             fetchInitial(category)
         }
     }
@@ -136,7 +144,17 @@ class FeedViewModel @Inject constructor(
     fun refresh(category: String) {
         if (_state.value.isLoading) return
         cache.remove(category)
-        _state.update { FeedState(isLoading = true) }
+        _state.update { FeedState(isLoading = true, savedIds = _state.value.savedIds) }
         fetchInitial(category)
+    }
+
+    fun toggleSave(paper: Paper) {
+        viewModelScope.launch {
+            if (_state.value.savedIds.contains(paper.id)) {
+                savedPaperRepository.remove(paper.id)
+            } else {
+                savedPaperRepository.save(paper)
+            }
+        }
     }
 }

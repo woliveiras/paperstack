@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -101,6 +103,7 @@ fun FeedScreen(
                         onRefresh = { viewModel.refresh(settings.activeCategory) },
                         onPaperClick = onPaperClick,
                         onLoadMore = viewModel::loadMore,
+                        onToggleSave = viewModel::toggleSave,
                         modifier = Modifier.padding(innerPadding),
                     )
             }
@@ -141,6 +144,7 @@ private fun FeedContent(
     onRefresh: () -> Unit,
     onPaperClick: (Paper) -> Unit,
     onLoadMore: () -> Unit,
+    onToggleSave: (Paper) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pullState = rememberPullToRefreshState()
@@ -155,7 +159,12 @@ private fun FeedContent(
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
         items(items = state.visiblePapers, key = { it.id }) { paper ->
-            PaperCard(paper = paper, onClick = { onPaperClick(paper) })
+            PaperCard(
+                paper = paper,
+                isSaved = paper.id in state.savedIds,
+                onClick = { onPaperClick(paper) },
+                onToggleSave = { onToggleSave(paper) },
+            )
         }
 
         if (state.canShowLoadMore) {
@@ -195,7 +204,9 @@ private fun FeedContent(
 @Composable
 private fun PaperCard(
     paper: Paper,
+    isSaved: Boolean,
     onClick: () -> Unit,
+    onToggleSave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -204,13 +215,24 @@ private fun PaperCard(
             .padding(horizontal = 12.dp, vertical = 6.dp)
             .clickable(onClick = onClick),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = paper.title,
-                style = MaterialTheme.typography.titleLarge,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-            )
+        Column(modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 12.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Text(
+                    text = paper.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onToggleSave) {
+                    Icon(
+                        imageVector = if (isSaved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        contentDescription = if (isSaved) "Remove from saved" else "Save paper",
+                        tint = if (isSaved) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(6.dp))
 
             val authorsText = when {
