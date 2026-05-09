@@ -39,6 +39,7 @@ types/            # Shared TypeScript types
 
 ## Conventions
 
+- **English only.** All code, comments, commit messages, docs, specs, ADRs, and PRDs must be written in English.
 - **TDD is mandatory.** Write the failing test first, then the implementation. Never write production code without a failing test covering it.
 - **TypeScript everywhere.** No `.js` files. Strict mode on.
 - **API calls only through `services/arxiv.ts`.** No `fetch` directly in screens or components.
