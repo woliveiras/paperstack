@@ -106,11 +106,12 @@ private fun NameStep(
 }
 
 @Composable
-private fun CategoriesStep(
+internal fun CategoriesStep(
     state: OnboardingState,
     onToggleCategory: (String) -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
+    confirmLabel: String = "Get Started",
 ) {
     val grouped = ARXIV_CATEGORIES.groupBy { it.group }
 
@@ -122,7 +123,7 @@ private fun CategoriesStep(
                     enabled = state.canProceedFromCategories && !state.isSaving,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(if (state.isSaving) "Saving…" else "Get Started")
+                    Text(if (state.isSaving) "Saving…" else confirmLabel)
                 }
                 state.error?.let { msg ->
                     Spacer(modifier = Modifier.height(8.dp))

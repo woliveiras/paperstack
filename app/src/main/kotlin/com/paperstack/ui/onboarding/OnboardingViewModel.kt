@@ -56,4 +56,28 @@ class OnboardingViewModel @Inject constructor(
             }
         }
     }
+
+    /** Pre-fills the selected categories for the "add categories" flow. */
+    fun initForAddCategories(existingCategories: List<String>) {
+        _state.update {
+            it.copy(
+                step = OnboardingStep.Categories,
+                selectedCategories = existingCategories.toSet(),
+            )
+        }
+    }
+
+    /** Saves only the new categories without changing name or onboarding status. */
+    fun saveAddedCategories() {
+        val current = _state.value
+        _state.update { it.copy(isSaving = true, error = null) }
+        viewModelScope.launch {
+            try {
+                settingsRepository.addCategories(current.selectedCategories.toList())
+                _state.update { it.copy(isSaving = false, isDone = true) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isSaving = false, error = e.message) }
+            }
+        }
+    }
 }
