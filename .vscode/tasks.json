@@ -1,0 +1,126 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Debug",
+      "type": "shell",
+      "command": "./gradlew :app:assembleDebug",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Release",
+      "type": "shell",
+      "command": "./gradlew :app:assembleRelease",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Debug",
+      "type": "shell",
+      "command": "./gradlew :app:installDebug",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run App",
+      "type": "shell",
+      "command": "./gradlew :app:installDebug && adb shell am start -n com.paperstack/.MainActivity",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Test Unit",
+      "type": "shell",
+      "command": "./gradlew :app:test",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test Instrumented",
+      "type": "shell",
+      "command": "./gradlew :app:connectedDebugAndroidTest",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "./gradlew :app:lint",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean",
+      "type": "shell",
+      "command": "./gradlew clean",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Emulator: Pixel 7 API 34",
+      "type": "shell",
+      "command": "${env:HOME}/Library/Android/sdk/emulator/emulator -avd Pixel_7_API_34 -no-snapshot-save",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*emulator.*",
+          "endsPattern": "^.*boot completed.*"
+        }
+      }
+    },
+    {
+      "label": "Start Emulator: Medium Phone API 36",
+      "type": "shell",
+      "command": "${env:HOME}/Library/Android/sdk/emulator/emulator -avd Medium_Phone_API_36.0 -no-snapshot-save",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*emulator.*",
+          "endsPattern": "^.*boot completed.*"
+        }
+      }
+    },
+    {
+      "label": "ADB: List Devices",
+      "type": "shell",
+      "command": "adb devices",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ADB: Logcat (Paperstack)",
+      "type": "shell",
+      "command": "adb logcat --pid=$(adb shell pidof -s com.paperstack) 2>/dev/null || adb logcat -s 'paperstack'",
+      "isBackground": true,
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}
