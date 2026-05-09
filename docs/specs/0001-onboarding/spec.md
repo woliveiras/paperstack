@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0001"
 title: Onboarding
 depends_on: []

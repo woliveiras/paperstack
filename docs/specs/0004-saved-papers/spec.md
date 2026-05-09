@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0004"
 title: Saved Papers
 depends_on: ["0002"]

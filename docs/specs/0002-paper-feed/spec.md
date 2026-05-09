@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0002"
 title: Paper Feed
 depends_on: ["0001"]
