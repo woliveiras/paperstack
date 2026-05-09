@@ -84,13 +84,13 @@ Use the versioned PDF URL from `paper.pdfUrl` (e.g. `https://arxiv.org/pdf/2605.
 
 ## Acceptance criteria
 
-- [ ] AC1: Tapping "Download PDF" starts the download and shows a progress indicator.
-- [ ] AC2: After a successful download, the button changes to "Open PDF".
-- [ ] AC3: Tapping "Open PDF" opens the file in the device's native document viewer.
-- [ ] AC4: If the file already exists on disk, "Open PDF" is shown immediately without re-downloading.
-- [ ] AC5: A download error shows an error message and a "Retry" button.
-- [ ] AC6: `DetailViewModel` download logic is covered by unit tests with a mocked OkHttp client.
-- [ ] AC7: Concurrent taps on "Download PDF" do not trigger multiple parallel downloads.
+- [x] AC1: Tapping "Download PDF" starts the download and shows a progress indicator.
+- [x] AC2: After a successful download, the button changes to "Open PDF".
+- [x] AC3: Tapping "Open PDF" opens the file in the device's native document viewer.
+- [x] AC4: If the file already exists on disk, "Open PDF" is shown immediately without re-downloading.
+- [x] AC5: A download error shows an error message and a "Retry" button.
+- [x] AC6: `DetailViewModel` download logic is covered by unit tests with a mocked OkHttp client.
+- [x] AC7: Concurrent taps on "Download PDF" do not trigger multiple parallel downloads.
 
 ## Risks
 
