@@ -56,15 +56,15 @@ Persistence: Room table `saved_papers` (see android skill for `SavedPaperEntity`
 
 ## Acceptance criteria
 
-- [ ] AC1: Saving a paper from the feed card adds it to `savedStore.savedPapers`.
-- [ ] AC2: Saving a paper from the detail screen adds it to `savedStore.savedPapers`.
-- [ ] AC3: Saved papers persist after the app is closed and reopened.
-- [ ] AC4: The saved tab shows all saved papers.
-- [ ] AC5: Unsaving a paper from the saved list removes it from the list immediately.
-- [ ] AC6: The saved/unsaved state is consistent between the feed, detail screen, and saved list.
-- [ ] AC7: An empty state is shown when no papers are saved.
-- [ ] AC8: `SavedPaperRepository` — `save`, `unsave`, and `isSaved` are covered by unit tests with a mocked DAO.
-- [ ] AC9: Room DAO (`SavedPaperDao`) is covered by an instrumented test with an in-memory database.
+- [x] AC1: Saving a paper from the feed card adds it to `savedStore.savedPapers`.
+- [x] AC2: Saving a paper from the detail screen adds it to `savedStore.savedPapers`.
+- [x] AC3: Saved papers persist after the app is closed and reopened.
+- [x] AC4: The saved tab shows all saved papers.
+- [x] AC5: Unsaving a paper from the saved list removes it from the list immediately.
+- [x] AC6: The saved/unsaved state is consistent between the feed, detail screen, and saved list.
+- [x] AC7: An empty state is shown when no papers are saved.
+- [x] AC8: `SavedPaperRepository` — `save`, `unsave`, and `isSaved` are covered by unit tests with a mocked DAO.
+- [x] AC9: Room DAO (`SavedPaperDao`) is covered by an instrumented test with an in-memory database.
 
 ## Risks
 
