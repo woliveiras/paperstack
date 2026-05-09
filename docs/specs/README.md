@@ -6,11 +6,11 @@ Feature specifications for Paperstack.
 
 | # | Title | Status | Depends on | Blocks |
 |---|-------|--------|------------|--------|
-| [0001](0001-onboarding/spec.md) | Onboarding | Draft | — | 0002 |
-| [0002](0002-paper-feed/spec.md) | Paper Feed | Draft | 0001 | 0003, 0004, 0005 |
-| [0003](0003-paper-detail/spec.md) | Paper Detail | Draft | 0002 | — |
-| [0004](0004-saved-papers/spec.md) | Saved Papers | Draft | 0002 | — |
-| [0005](0005-pdf-download/spec.md) | PDF Download | Draft | 0002 | — |
+| [0001](0001-onboarding/spec.md) | Onboarding | Approved | — | 0002 |
+| [0002](0002-paper-feed/spec.md) | Paper Feed | Approved | 0001 | 0003, 0004, 0005 |
+| [0003](0003-paper-detail/spec.md) | Paper Detail | Approved | 0002 | — |
+| [0004](0004-saved-papers/spec.md) | Saved Papers | Approved | 0002 | — |
+| [0005](0005-pdf-download/spec.md) | PDF Download | Approved | 0002 | — |
 
 ## Families
 
