@@ -29,17 +29,30 @@ class FeedViewModel @Inject constructor(
     private val _state = MutableStateFlow(FeedState())
     val state: StateFlow<FeedState> = _state.asStateFlow()
 
+    private val cache = mutableMapOf<String, FeedState>()
+    private var currentCategory: String = ""
+
     init {
         settingsRepository.settings
             .filterNotNull()
             .map { it.activeCategory }
-            .onEach { category -> reset(category) }
+            .onEach { category -> switchCategory(category) }
             .launchIn(viewModelScope)
     }
 
-    fun reset(category: String) {
-        _state.value = FeedState(isLoading = true)
-        fetchInitial(category)
+    private fun switchCategory(category: String) {
+        if (category == currentCategory) return
+        // Persist current state before switching
+        if (currentCategory.isNotEmpty()) cache[currentCategory] = _state.value
+        currentCategory = category
+
+        val cached = cache[category]
+        if (cached != null) {
+            _state.value = cached
+        } else {
+            _state.value = FeedState(isLoading = true)
+            fetchInitial(category)
+        }
     }
 
     private fun fetchInitial(category: String) {
@@ -61,6 +74,7 @@ class FeedViewModel @Inject constructor(
                             error = null,
                         )
                     }
+                    cache[category] = _state.value
                 },
                 onFailure = { e ->
                     _state.update {
@@ -103,6 +117,7 @@ class FeedViewModel @Inject constructor(
                             isPrefetching = false,
                         )
                     }
+                    cache[currentCategory] = _state.value
                 },
                 onFailure = {
                     // Silent failure — next loadMore will retry
@@ -113,12 +128,14 @@ class FeedViewModel @Inject constructor(
     }
 
     fun retry(category: String) {
+        cache.remove(category)
         _state.update { FeedState(isLoading = true) }
         fetchInitial(category)
     }
 
     fun refresh(category: String) {
         if (_state.value.isLoading) return
+        cache.remove(category)
         _state.update { FeedState(isLoading = true) }
         fetchInitial(category)
     }
