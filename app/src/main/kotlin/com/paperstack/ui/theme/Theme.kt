@@ -50,7 +50,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun PaperstackTheme(
+fun PaperStackTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
@@ -58,8 +58,8 @@ fun PaperstackTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = PaperstackTypography,
-        shapes = PaperstackShapes,
+        typography = PaperStackTypography,
+        shapes = PaperStackShapes,
         content = content,
     )
 }

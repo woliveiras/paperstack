@@ -1,4 +1,4 @@
-# Paperstack
+# PaperStack
 
 Mobile app to browse, save, and read arXiv papers by category.
 
@@ -34,7 +34,7 @@ Mobile app to browse, save, and read arXiv papers by category.
 ```
 app/src/main/kotlin/com/paperstack/
   MainActivity.kt              # single Activity (Hilt entry point)
-  PaperstackApplication.kt     # Application class (@HiltAndroidApp)
+  PaperStackApplication.kt     # Application class (@HiltAndroidApp)
   data/
     local/
       db/                      # Room database, DAOs, entities

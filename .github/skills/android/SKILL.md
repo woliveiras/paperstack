@@ -18,11 +18,11 @@ applyTo:
 ```
 app/src/main/kotlin/com/paperstack/
   MainActivity.kt               # Single Activity (@AndroidEntryPoint)
-  PaperstackApplication.kt      # Application class (@HiltAndroidApp)
+  PaperStackApplication.kt      # Application class (@HiltAndroidApp)
   data/
     local/
       db/
-        PaperstackDatabase.kt   # @Database class
+        PaperStackDatabase.kt   # @Database class
         dao/SavedPaperDao.kt    # @Dao interface
         entity/SavedPaperEntity.kt
       datastore/

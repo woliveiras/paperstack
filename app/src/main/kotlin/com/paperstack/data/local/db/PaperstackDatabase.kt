@@ -4,6 +4,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 @Database(entities = [SavedPaperEntity::class], version = 1, exportSchema = true)
-abstract class PaperstackDatabase : RoomDatabase() {
+abstract class PaperStackDatabase : RoomDatabase() {
     abstract fun savedPaperDao(): SavedPaperDao
 }

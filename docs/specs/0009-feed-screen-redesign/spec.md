@@ -33,7 +33,7 @@ Update the feed screen layout and top bar to match the Figma design while preser
 - RF1: The top bar is a custom composable (not `TopAppBar`) with a fixed height, white/card background, and a bottom border (`HorizontalDivider`).
 - RF2: Top bar layout is a `Row` with three slots:
   - **Left**: a hamburger icon button (`Icons.Filled.Menu`, 24×24dp) wrapped in a circular touch target. Opens the `ModalNavigationDrawer`.
-  - **Center** (weight 1f, centered): Title "Paperstack" (`titleMedium`, `FontWeight.SemiBold`) and the current category name below it (`labelSmall`, `onSurfaceVariant`).
+  - **Center** (weight 1f, centered): Title "PaperStack" (`titleMedium`, `FontWeight.SemiBold`) and the current category name below it (`labelSmall`, `onSurfaceVariant`).
   - **Right**: an invisible `Spacer(Modifier.size(40.dp))` to balance the row so the title stays centered.
 - RF3: The paper list is a `LazyColumn` filling the remaining space (`Modifier.weight(1f)` or `fillMaxSize` in the Scaffold content area), with `contentPadding = PaddingValues(Spacing.md)` and `verticalArrangement = spacedBy(Spacing.md)`.
 - RF4: At the end of the list, a text-only "Load more papers" button appears when `state.canShowLoadMore` is true — styled as full-width, `bodySmall`, `FontWeight.Medium`, primary-colored text, no background, rounded-lg ripple. Tapping calls `onLoadMore`.
@@ -69,7 +69,7 @@ private fun FeedTopBar(
 
 ## Acceptance criteria
 
-- [ ] AC1: The top bar shows the hamburger icon on the left and "Paperstack" centered with the current category name below.
+- [ ] AC1: The top bar shows the hamburger icon on the left and "PaperStack" centered with the current category name below.
 - [ ] AC2: The right side of the top bar has a 40dp spacer to visually center the title.
 - [ ] AC3: A `HorizontalDivider` separates the top bar from the list.
 - [ ] AC4: The paper list uses `Spacing.md` (16dp) padding and 16dp spacing between items.

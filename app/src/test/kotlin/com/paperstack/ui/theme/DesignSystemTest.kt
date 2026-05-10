@@ -68,10 +68,10 @@ class DesignSystemTest {
 
         @Test
         fun `shapes object is defined`() {
-            assertNotNull(PaperstackShapes)
-            assertNotNull(PaperstackShapes.small)
-            assertNotNull(PaperstackShapes.medium)
-            assertNotNull(PaperstackShapes.large)
+            assertNotNull(PaperStackShapes)
+            assertNotNull(PaperStackShapes.small)
+            assertNotNull(PaperStackShapes.medium)
+            assertNotNull(PaperStackShapes.large)
         }
     }
 
@@ -81,46 +81,46 @@ class DesignSystemTest {
 
         @Test
         fun `titleLarge uses PlayfairDisplay font family`() {
-            assertEquals(PlayfairDisplay, PaperstackTypography.titleLarge.fontFamily)
+            assertEquals(PlayfairDisplay, PaperStackTypography.titleLarge.fontFamily)
         }
 
         @Test
         fun `titleLarge is SemiBold 22sp`() {
-            assertEquals(FontWeight.SemiBold, PaperstackTypography.titleLarge.fontWeight)
-            assertEquals(22.sp, PaperstackTypography.titleLarge.fontSize)
+            assertEquals(FontWeight.SemiBold, PaperStackTypography.titleLarge.fontWeight)
+            assertEquals(22.sp, PaperStackTypography.titleLarge.fontSize)
         }
 
         @Test
         fun `headlineMedium uses PlayfairDisplay`() {
-            assertEquals(PlayfairDisplay, PaperstackTypography.headlineMedium.fontFamily)
+            assertEquals(PlayfairDisplay, PaperStackTypography.headlineMedium.fontFamily)
         }
 
         @Test
         fun `bodyLarge uses Inter font family`() {
-            assertEquals(Inter, PaperstackTypography.bodyLarge.fontFamily)
+            assertEquals(Inter, PaperStackTypography.bodyLarge.fontFamily)
         }
 
         @Test
         fun `bodyMedium uses Inter 14sp`() {
-            assertEquals(Inter, PaperstackTypography.bodyMedium.fontFamily)
-            assertEquals(14.sp, PaperstackTypography.bodyMedium.fontSize)
+            assertEquals(Inter, PaperStackTypography.bodyMedium.fontFamily)
+            assertEquals(14.sp, PaperStackTypography.bodyMedium.fontSize)
         }
 
         @Test
         fun `labelLarge uses Inter Medium`() {
-            assertEquals(Inter, PaperstackTypography.labelLarge.fontFamily)
-            assertEquals(FontWeight.Medium, PaperstackTypography.labelLarge.fontWeight)
+            assertEquals(Inter, PaperStackTypography.labelLarge.fontFamily)
+            assertEquals(FontWeight.Medium, PaperStackTypography.labelLarge.fontWeight)
         }
 
         @Test
         fun `headlineLarge uses Inter for UI chrome`() {
-            assertEquals(Inter, PaperstackTypography.headlineLarge.fontFamily)
+            assertEquals(Inter, PaperStackTypography.headlineLarge.fontFamily)
         }
 
         @Test
         fun `titleMedium uses Inter SemiBold for UI`() {
-            assertEquals(Inter, PaperstackTypography.titleMedium.fontFamily)
-            assertEquals(FontWeight.SemiBold, PaperstackTypography.titleMedium.fontWeight)
+            assertEquals(Inter, PaperStackTypography.titleMedium.fontFamily)
+            assertEquals(FontWeight.SemiBold, PaperStackTypography.titleMedium.fontWeight)
         }
     }
 }

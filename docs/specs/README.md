@@ -1,6 +1,6 @@
 # Specs
 
-Feature specifications for Paperstack.
+Feature specifications for PaperStack.
 
 ## Index
 

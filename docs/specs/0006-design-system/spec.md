@@ -30,11 +30,11 @@ Introduce a centralized Compose design system (`ui/theme/`) that encodes all bra
 
 ## Functional requirements
 
-- RF1: A `PaperstackTheme` wrapper applies the brand color scheme (light + dark) to all screens via `MaterialTheme`.
+- RF1: A `PaperStackTheme` wrapper applies the brand color scheme (light + dark) to all screens via `MaterialTheme`.
 - RF2: Primary color is `#3D5AFE` (deep indigo); surface is warm off-white `#FFFDF6` in light, deep navy `#0D0F1A` in dark.
 - RF3: Paper titles across the app use a serif typeface (Playfair Display); all other text uses Inter (sans-serif).
-- RF4: A `PaperstackTypography` object maps semantic roles (`titleLarge`, `bodyMedium`, etc.) to the correct font family, weight, and size.
-- RF5: A `PaperstackShapes` object defines corner radii — cards use `12.dp` rounded corners.
+- RF4: A `PaperStackTypography` object maps semantic roles (`titleLarge`, `bodyMedium`, etc.) to the correct font family, weight, and size.
+- RF5: A `PaperStackShapes` object defines corner radii — cards use `12.dp` rounded corners.
 - RF6: A `Spacing` object exposes named spacing constants (`xs = 4.dp`, `sm = 8.dp`, `md = 16.dp`, `lg = 24.dp`, `xl = 32.dp`) used in padding/margin throughout the app.
 - RF7: Dark theme is applied automatically based on system setting (`isSystemInDarkTheme()`).
 - RF8: All existing screens are updated to remove hardcoded color/spacing literals and consume theme tokens instead.
@@ -47,7 +47,7 @@ Introduce a centralized Compose design system (`ui/theme/`) that encodes all bra
 ```kotlin
 // ui/theme/Theme.kt
 @Composable
-fun PaperstackTheme(
+fun PaperStackTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 )
@@ -68,7 +68,7 @@ val SurfaceWarm = Color(0xFFFFFDF6)
 
 ```kotlin
 // ui/theme/Type.kt
-val PaperstackTypography = Typography(
+val PaperStackTypography = Typography(
     titleLarge  = TextStyle(fontFamily = PlayfairDisplay, fontWeight = FontWeight.SemiBold, fontSize = 22.sp),
     titleMedium = TextStyle(fontFamily = PlayfairDisplay, fontWeight = FontWeight.Medium,   fontSize = 16.sp),
     bodyLarge   = TextStyle(fontFamily = Inter,           fontWeight = FontWeight.Normal,   fontSize = 16.sp),
@@ -95,7 +95,7 @@ object Spacing {
 
 ```kotlin
 // ui/theme/Shape.kt
-val PaperstackShapes = Shapes(
+val PaperStackShapes = Shapes(
     small  = RoundedCornerShape(4.dp),
     medium = RoundedCornerShape(12.dp),
     large  = RoundedCornerShape(16.dp),
@@ -116,13 +116,13 @@ compose-ui-google-fonts = { group = "androidx.compose.ui", name = "ui-text-googl
 
 ## Acceptance criteria
 
-- [ ] AC1: `PaperstackTheme` is the single theme wrapper — `MaterialTheme` is not called directly anywhere outside `Theme.kt`.
+- [ ] AC1: `PaperStackTheme` is the single theme wrapper — `MaterialTheme` is not called directly anywhere outside `Theme.kt`.
 - [ ] AC2: Paper titles render in Playfair Display on feed cards, saved cards, and the detail screen.
 - [ ] AC3: All body and UI text renders in Inter.
 - [ ] AC4: Switching the device to dark mode applies the dark color scheme without any code change.
 - [ ] AC5: No hardcoded `Color(...)` literals remain in screen composables — only `MaterialTheme.colorScheme.*` references.
 - [ ] AC6: No hardcoded `dp` spacing literals remain in screen composables — only `Spacing.*` constants.
-- [ ] AC7: `PaperstackTheme` renders correctly in Compose Preview (`@Preview`) for both light and dark themes.
+- [ ] AC7: `PaperStackTheme` renders correctly in Compose Preview (`@Preview`) for both light and dark themes.
 - [ ] AC8: Google Fonts load with a fallback font defined — the app does not crash if fonts fail to load offline.
 
 ## Risks

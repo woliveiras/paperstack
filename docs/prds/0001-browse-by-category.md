@@ -10,7 +10,7 @@ Researchers, students, professors, and industry professionals who follow scienti
 
 ## Design principle: local-first
 
-Paperstack is **fully local-first**. There are no accounts, no login, no backend, and no third-party auth integrations. All user preferences and saved data are stored on-device (AsyncStorage). The only external communication is read-only fetches to the arXiv public API.
+PaperStack is **fully local-first**. There are no accounts, no login, no backend, and no third-party auth integrations. All user preferences and saved data are stored on-device (AsyncStorage). The only external communication is read-only fetches to the arXiv public API.
 
 ## Goals
 

@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SavedPaperDaoTest {
 
-    private lateinit var db: PaperstackDatabase
+    private lateinit var db: PaperStackDatabase
     private lateinit var dao: SavedPaperDao
 
     private val entity = SavedPaperEntity(
@@ -39,7 +39,7 @@ class SavedPaperDaoTest {
     fun createDb() {
         db = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            PaperstackDatabase::class.java,
+            PaperStackDatabase::class.java,
         ).allowMainThreadQueries().build()
         dao = db.savedPaperDao()
     }

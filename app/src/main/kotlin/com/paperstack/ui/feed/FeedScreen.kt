@@ -135,7 +135,7 @@ private fun FeedTopBar(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Paperstack",
+                        text = "PaperStack",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )

@@ -67,7 +67,7 @@ Key fields per `<entry>`:
 
 - **Hard limit: 1 request per 3 seconds.**
 - Never fire parallel requests to the arXiv API.
-- Add `User-Agent: Paperstack/1.0 (contact@example.com)` header via OkHttp `Interceptor`.
+- Add `User-Agent: PaperStack/1.0 (contact@example.com)` header via OkHttp `Interceptor`.
 - Implement exponential backoff on 503 responses.
 
 ## Pagination

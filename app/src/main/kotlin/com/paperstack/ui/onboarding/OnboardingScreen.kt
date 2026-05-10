@@ -107,7 +107,7 @@ private fun NameStep(
             )
             Spacer(modifier = Modifier.height(Spacing.lg))
             Text(
-                text = "Welcome to Paperstack",
+                text = "Welcome to PaperStack",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,

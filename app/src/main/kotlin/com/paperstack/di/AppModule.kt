@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.paperstack.data.local.datastore.SettingsDataStore
-import com.paperstack.data.local.db.PaperstackDatabase
+import com.paperstack.data.local.db.PaperStackDatabase
 import com.paperstack.data.local.db.RoomSavedPaperRepository
 import com.paperstack.data.local.db.SavedPaperDao
 import com.paperstack.data.remote.ArxivApiService
@@ -47,13 +47,13 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): PaperstackDatabase =
-        Room.databaseBuilder(context, PaperstackDatabase::class.java, "paperstack.db")
+    fun provideDatabase(@ApplicationContext context: Context): PaperStackDatabase =
+        Room.databaseBuilder(context, PaperStackDatabase::class.java, "paperstack.db")
             .build()
 
     @Provides
     @Singleton
-    fun provideSavedPaperDao(db: PaperstackDatabase): SavedPaperDao = db.savedPaperDao()
+    fun provideSavedPaperDao(db: PaperStackDatabase): SavedPaperDao = db.savedPaperDao()
 }
 
 @Module
@@ -65,7 +65,7 @@ object NetworkModule {
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val request = chain.request().newBuilder()
-                .header("User-Agent", "Paperstack/1.0 (contact@paperstack.app)")
+                .header("User-Agent", "PaperStack/1.0 (contact@paperstack.app)")
                 .build()
             chain.proceed(request)
         }

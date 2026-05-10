@@ -15,6 +15,6 @@ class ExampleInstrumentedTest {
 
     @Test
     fun appLaunches() {
-        composeTestRule.onNodeWithText("Paperstack").assertIsDisplayed()
+        composeTestRule.onNodeWithText("PaperStack").assertIsDisplayed()
     }
 }

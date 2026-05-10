@@ -32,7 +32,7 @@ val Inter = FontFamily(
     Font(googleFont = interFont, fontProvider = googleFontProvider, weight = FontWeight.Bold),
 )
 
-val PaperstackTypography = Typography(
+val PaperStackTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = PlayfairDisplay,
         fontWeight = FontWeight.Bold,

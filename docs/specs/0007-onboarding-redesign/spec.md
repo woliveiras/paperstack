@@ -30,7 +30,7 @@ Visually update the onboarding name step to match the Figma design while keeping
 ## Functional requirements
 
 - RF1: The screen shows a `Layers`-style stacked-paper icon (64×64dp) at the top-center of the content area.
-- RF2: Below the icon, a large headline reads "Welcome to Paperstack" — `headlineLarge` style, semibold, Inter (via the design system token).
+- RF2: Below the icon, a large headline reads "Welcome to PaperStack" — `headlineLarge` style, semibold, Inter (via the design system token).
 - RF3: Below the headline, a subtitle reads "What should we call you?" — `bodyLarge`, `onSurfaceVariant` color.
 - RF4: A text input field spans the full width with rounded corners (`12.dp`), placeholder "Your name", and highlights its border with the primary color on focus.
 - RF5: A full-width pill-shaped button ("Continue") is pinned to the bottom of the screen with `md` (16dp) horizontal and `lg` (24dp) bottom padding.
@@ -71,7 +71,7 @@ Use `Icons.AutoMirrored.Outlined.LibraryBooks` or `Icons.Outlined.Layers` if ava
 ## Acceptance criteria
 
 - [ ] AC1: The stacked-paper icon is displayed at 64×64dp, tinted primary color, centered above the headline.
-- [ ] AC2: The headline "Welcome to Paperstack" uses `headlineLarge` typography (Inter SemiBold via the design system).
+- [ ] AC2: The headline "Welcome to PaperStack" uses `headlineLarge` typography (Inter SemiBold via the design system).
 - [ ] AC3: The subtitle "What should we call you?" is displayed in `bodyLarge` with `onSurfaceVariant` tint.
 - [ ] AC4: The text field has rounded corners, shows "Your name" placeholder, and its border turns primary color when focused.
 - [ ] AC5: The "Continue" button is pill-shaped (high border radius), full-width, primary background, white text.

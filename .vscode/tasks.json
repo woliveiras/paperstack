@@ -115,7 +115,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ADB: Logcat (Paperstack)",
+      "label": "ADB: Logcat (PaperStack)",
       "type": "shell",
       "command": "adb logcat --pid=$(adb shell pidof -s com.paperstack) 2>/dev/null || adb logcat -s 'paperstack'",
       "isBackground": true,

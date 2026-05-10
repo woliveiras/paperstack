@@ -13,7 +13,7 @@ owner: ""
 
 ## Context
 
-When a user opens Paperstack for the first time, there is no stored preference for display name or category. The app cannot show a meaningful feed without at least one category selected. Onboarding must be completed before any other screen is accessible.
+When a user opens PaperStack for the first time, there is no stored preference for display name or category. The app cannot show a meaningful feed without at least one category selected. Onboarding must be completed before any other screen is accessible.
 
 Driven by PRD: [docs/prds/0001-browse-by-category.md](../../prds/0001-browse-by-category.md)
 

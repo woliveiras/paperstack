@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/logo.svg" width="128" alt="Paperstack logo" />
+  <img src="docs/logo.svg" width="128" alt="PaperStack logo" />
 </p>
 
-<h1 align="center">Paperstack</h1>
+<h1 align="center">PaperStack</h1>
 
 <p align="center">
   Browse, save, and read arXiv papers by category, right from your phone.

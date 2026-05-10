@@ -47,7 +47,7 @@ import com.paperstack.ui.onboarding.CategoriesStep
 import com.paperstack.ui.onboarding.OnboardingScreen
 import com.paperstack.ui.onboarding.OnboardingViewModel
 import com.paperstack.ui.saved.SavedScreen
-import com.paperstack.ui.theme.PaperstackTheme
+import com.paperstack.ui.theme.PaperStackTheme
 import com.paperstack.ui.theme.Spacing
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.encodeToString
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PaperstackTheme {
+            PaperStackTheme {
                 val navController = rememberNavController()
                 val mainViewModel: MainViewModel = hiltViewModel()
                 val startDestination by mainViewModel.startDestination.collectAsState()
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         bottomBar = {
                             if (showBottomNav) {
-                                PaperstackBottomNav(
+                                PaperStackBottomNav(
                                     currentRoute = currentRoute,
                                     onTabSelected = { route ->
                                         navController.navigate(route) {
@@ -158,7 +158,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun PaperstackBottomNav(
+private fun PaperStackBottomNav(
     currentRoute: String?,
     onTabSelected: (String) -> Unit,
 ) {

@@ -1,6 +1,6 @@
 # ADRs
 
-Architecture Decision Records for Paperstack.
+Architecture Decision Records for PaperStack.
 
 ## Index
 
