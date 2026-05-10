@@ -88,17 +88,17 @@ private fun NameStep(
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = Spacing.md, vertical = Spacing.xl),
-        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.height(Spacing.xl))
             Icon(
                 painter = painterResource(R.drawable.logo_paperstack),
                 contentDescription = null,
@@ -143,6 +143,7 @@ private fun NameStep(
             shape = RoundedCornerShape(50),
             modifier = Modifier
                 .fillMaxWidth()
+                .align(Alignment.BottomCenter)
                 .padding(bottom = Spacing.lg),
         ) {
             Text(
