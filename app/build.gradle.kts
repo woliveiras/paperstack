@@ -21,7 +21,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.paperstack"
+        applicationId = "com.woliveiras.paperstack"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
