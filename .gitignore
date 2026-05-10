@@ -9,6 +9,7 @@ local.properties
 *.iws
 *.ipr
 .DS_Store
+.kotlin/
 
 # Signing configs
 *.keystore
