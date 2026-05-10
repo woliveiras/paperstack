@@ -14,6 +14,7 @@ local.properties
 # Signing configs
 *.keystore
 *.jks
+keystore.properties
 
 # Room schemas (commit if you want migration history)
 app/schemas/
