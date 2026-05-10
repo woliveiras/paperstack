@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0006"
 title: Design System
 depends_on: []

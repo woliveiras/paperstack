@@ -11,7 +11,7 @@ Feature specifications for Paperstack.
 | [0003](0003-paper-detail/spec.md) | Paper Detail | Implemented | 0002 | — |
 | [0004](0004-saved-papers/spec.md) | Saved Papers | Implemented | 0002 | — |
 | [0005](0005-pdf-download/spec.md) | PDF Download | Implemented | 0002 | — |
-| [0006](0006-design-system/spec.md) | Design System | Approved | — | — |
+| [0006](0006-design-system/spec.md) | Design System | Implemented | — | — |
 | [0007](0007-onboarding-redesign/spec.md) | Onboarding Screen Redesign | Approved | 0006 | — |
 | [0008](0008-category-selection-redesign/spec.md) | Category Selection Screen Redesign | Approved | 0006 | — |
 | [0009](0009-feed-screen-redesign/spec.md) | Feed Screen Redesign | Approved | 0006 | — |
