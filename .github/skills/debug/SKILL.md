@@ -1,24 +1,23 @@
 ---
 name: debug
 description: >
-  Debugging workflow for the Expo / React Native app. Use when tracking down
+  Debugging workflow for the Android (Kotlin + Jetpack Compose) app. Use when tracking down
   runtime errors, unexpected behavior, network issues, or state problems.
   Trigger phrases: "debug", "não está funcionando", "erro em runtime",
   "por que isso falha", "breakpoint", "/debug".
 ---
 
-# Debugging — Expo / React Native
+# Debugging — Android / Jetpack Compose
 
 ## Tools available
 
 | Tool | What it debugs |
 |------|---------------|
-| Expo DevTools (`npx expo start`) | General runtime, logs, QR |
-| React Native DevTools (Chrome) | JS breakpoints, call stack, console |
-| Flipper | Network, AsyncStorage, React DevTools |
-| `console.log` / `console.error` | Quick sanity checks |
-| Vitest (`--reporter=verbose`) | Unit test failures |
-| `npx tsc --noEmit` | Type errors without running the app |
+| Logcat (`adb logcat`) | Runtime logs, crashes, ANRs |
+| Android Studio Debugger | Breakpoints, step-through, evaluate |
+| Layout Inspector | Compose tree, recomposition counts |
+| Network Profiler | OkHttp requests/responses |
+| `./gradlew test --info` | Unit test failures with stack traces |
 
 ## Step-by-step workflow
 
@@ -26,60 +25,55 @@ description: >
 
 | Symptom | Likely layer | Start here |
 |---------|-------------|------------|
-| TypeScript error | Types | `npx tsc --noEmit` |
-| Test failure | Unit logic | `npx vitest run --reporter=verbose` |
-| Crash on startup | Root layout / providers | `app/_layout.tsx` |
-| Wrong data shown | Service / hook | `services/arxiv.ts`, `hooks/` |
-| State not updating | Zustand store | `store/` |
-| Navigation broken | Expo Router | `app/` file structure |
-| PDF not opening | Platform API | `Linking.openURL` call |
-| AsyncStorage lost | Persistence | `zustand/middleware` persist config |
+| Compilation error | Kotlin / Gradle | `./gradlew compileDebugKotlin 2>&1 \| grep "^e:"` |
+| Test failure | Unit logic | `./gradlew test --tests "ClassName" --info` |
+| Crash on startup | Hilt / Activity | Logcat for `FATAL EXCEPTION` |
+| Wrong data shown | Repository / API | `ArxivApiServiceImpl.kt`, repository layer |
+| State not updating | ViewModel | StateFlow emissions, check `viewModelScope` |
+| Navigation broken | NavHost | `MainActivity.kt` routes |
+| PDF not opening | Intent / FileProvider | `DetailViewModel.kt` download logic |
+| DataStore lost | Persistence | `SettingsDataStore.kt` |
 
-### 2. Check logs first
+### 2. Check Logcat first
 
 ```sh
-npx expo start --clear   # clear Metro cache before debugging
+adb logcat -s "paperstack" "*:E"   # errors only
+adb logcat | grep -E "FATAL|Exception|Error"
 ```
 
-Filter Metro logs:
+Or filter by package:
 ```sh
-npx expo start 2>&1 | grep -E "ERROR|WARN"
+adb logcat --pid=$(adb shell pidof com.paperstack)
 ```
 
 ### 3. Inspect network (arXiv API)
 
-Add a temporary log in `services/arxiv.ts`:
+Add temporary logging in `ArxivApiServiceImpl.kt`:
 
-```ts
-console.log('[arxiv] request:', url)
-console.log('[arxiv] response status:', res.status)
-console.log('[arxiv] raw xml:', await res.text())  // remove after debug
+```kotlin
+Log.d("ArxivApi", "request: $url")
+Log.d("ArxivApi", "response code: ${response.code}")
+Log.d("ArxivApi", "body: ${response.body?.string()}")  // remove after debug
 ```
 
-**Never commit `console.log` calls** — remove before PR.
+**Never commit Log.d calls** — remove before PR.
 
-### 4. Inspect Zustand store
+### 4. Inspect ViewModel state
 
-Dump store state at any point:
+Add temporary logging in the ViewModel:
 
-```ts
-import { useFeedStore } from '../store/feedStore'
-console.log('[store]', useFeedStore.getState())
+```kotlin
+Log.d("FeedVM", "state: ${_state.value}")
 ```
 
-Or add the Zustand devtools middleware temporarily:
-
-```ts
-import { devtools } from 'zustand/middleware'
-// wrap your store create() with devtools() for Redux DevTools support
-```
+Or use the debugger: set a breakpoint in the ViewModel and inspect `_state.value`.
 
 ### 5. Isolate with a unit test
 
-If the bug is in a service or hook, write a failing test that reproduces it:
+If the bug is in a service or repository, write a failing test:
 
 ```sh
-npx vitest run services/arxiv.test.ts --reporter=verbose
+./gradlew test --tests "com.paperstack.data.remote.ArxivApiServiceImplTest" --info
 ```
 
 This is often faster than running the full app.
@@ -89,24 +83,32 @@ This is often faster than running the full app.
 If the arXiv response parses incorrectly:
 
 1. Log the raw XML (step 3)
-2. Paste it into a minimal test with a fixture
-3. Run `fast-xml-parser` against it with the exact options used in `services/arxiv.ts`
-4. Adjust the parser options — do NOT switch to string/regex parsing
+2. Create a test fixture in the test class
+3. Run `parseResponse()` against it with MockWebServer
+4. Adjust `XmlPullParser` logic — do NOT switch to regex parsing
 
-### 7. React Native specific
+### 7. Hilt / DI issues
 
 | Issue | Fix |
 |-------|-----|
-| White screen on startup | Check `app/_layout.tsx` for unhandled errors |
-| "Unable to resolve module" | `npx expo start --clear` |
-| Stale state after hot reload | Full reload: `R` in terminal or shake device |
-| Fonts not loading | Ensure `useFonts` resolves before rendering |
-| `undefined is not an object` | Check optional chaining on API response fields |
+| `UninitializedPropertyAccessException` | Missing `@Inject` or `@HiltViewModel` |
+| `MissingBinding` | Check `@Module` / `@Provides` in `di/` |
+| `Kotlin metadata unsupported` | Clean build: `./gradlew clean assembleDebug` |
+| Hilt compilation error | Verify KSP + Hilt versions are compatible |
+
+### 8. Compose-specific
+
+| Issue | Fix |
+|-------|-----|
+| Recomposition loop | Check mutable state reads in composables |
+| `@OptIn` required | Add `@OptIn(ExperimentalMaterial3Api::class)` |
+| Unresolved reference | Verify import + dependency in `build.gradle.kts` |
+| Preview crash | Ensure `@Preview` composable has no Hilt deps |
 
 ## Anti-patterns
 
-- ❌ Leaving `console.log` in committed code
-- ❌ Adding `any` to silence a TypeScript error — fix the type
-- ❌ Disabling ESLint rules to work around a bug
-- ❌ Debugging state by reading AsyncStorage directly — use store selectors
+- ❌ Leaving `Log.d` in committed code
+- ❌ Using `!!` to silence nullability — fix the null check
+- ❌ Suppressing lint warnings to work around a bug
+- ❌ Debugging state by reading DataStore directly — use ViewModel StateFlow
 - ❌ Guessing at XML structure — always log the raw response first

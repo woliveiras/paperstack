@@ -79,10 +79,10 @@ First launch
 ### Local-first storage
 
 All data lives on-device:
-- Display name and selected categories → AsyncStorage via Zustand `settingsStore`
-- Active category (last viewed) → AsyncStorage via Zustand `settingsStore`
-- Saved papers → AsyncStorage via Zustand `savedStore`
-- Downloaded PDFs → device file system via `expo-file-system`
+- Display name and selected categories → DataStore Preferences via `SettingsDataStore`
+- Active category (last viewed) → DataStore Preferences via `SettingsDataStore`
+- Saved papers → Room database via `SavedPaperRepository`
+- Downloaded PDFs → device file system via `DownloadManager` / `ContentResolver`
 
 No backend. No sync. No account required.
 

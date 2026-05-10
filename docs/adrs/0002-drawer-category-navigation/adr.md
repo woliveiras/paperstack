@@ -41,7 +41,7 @@ Chosen option: **Option C — Drawer**, because it scales to unlimited categorie
 ### Option A — Tab bar
 
 * Good, because always visible; zero taps to switch
-* Bad, because overflows at 4+ categories; React Native tab bars clip or scroll awkwardly
+* Bad, because overflows at 4+ categories; Material 3 tab bars don't handle many items well
 
 ### Option B — Dropdown/picker in header
 
