@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <!-- Bottom paper (3rd layer) -->
+  <rect x="48" y="93" width="144" height="94" rx="7" stroke="#0D0F1A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Middle paper (2nd layer) -->
+  <rect x="64" y="69" width="144" height="102" rx="7" stroke="#0D0F1A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="#FFFDF6"/>
+
+  <!-- Top paper with folded corner -->
+  <path d="M80 52C80 48.134 83.134 45 87 45H192L224 77V148C224 151.866 220.866 155 217 155H87C83.134 155 80 151.866 80 148V52Z" stroke="#0D0F1A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="#FFFDF6"/>
+
+  <!-- Folded corner -->
+  <path d="M192 45V70C192 73.866 195.134 77 199 77H224" stroke="#0D0F1A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Text lines on top paper -->
+  <line x1="100" y1="82" x2="190" y2="82" stroke="#0D0F1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="200" y2="100" stroke="#0D0F1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="100" y1="118" x2="170" y2="118" stroke="#0D0F1A" stroke-width="6" stroke-linecap="round"/>
+</svg>

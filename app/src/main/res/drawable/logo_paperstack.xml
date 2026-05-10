@@ -1,0 +1,62 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="256dp"
+    android:height="256dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+
+    <!-- Bottom paper (3rd layer) -->
+    <path
+        android:pathData="M48,180 L48,100 C48,96 51,93 55,93 L185,93 C189,93 192,96 192,100 L192,180 C192,184 189,187 185,187 L55,187 C51,187 48,184 48,180 Z"
+        android:strokeWidth="7"
+        android:strokeColor="#0D0F1A"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+
+    <!-- Middle paper (2nd layer) -->
+    <path
+        android:pathData="M64,164 L64,76 C64,72 67,69 71,69 L201,69 C205,69 208,72 208,76 L208,164 C208,168 205,171 201,171 L71,171 C67,171 64,168 64,164 Z"
+        android:strokeWidth="7"
+        android:strokeColor="#0D0F1A"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#FFFDF6" />
+
+    <!-- Top paper with folded corner -->
+    <path
+        android:pathData="M80,148 L80,52 C80,48 83,45 87,45 L192,45 L224,77 L224,148 C224,152 221,155 217,155 L87,155 C83,155 80,152 80,148 Z"
+        android:strokeWidth="7"
+        android:strokeColor="#0D0F1A"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#FFFDF6" />
+
+    <!-- Folded corner triangle -->
+    <path
+        android:pathData="M192,45 L192,70 C192,74 195,77 199,77 L224,77"
+        android:strokeWidth="7"
+        android:strokeColor="#0D0F1A"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+
+    <!-- Text lines on top paper -->
+    <path
+        android:pathData="M100,82 L190,82"
+        android:strokeWidth="6"
+        android:strokeColor="#0D0F1A"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M100,100 L200,100"
+        android:strokeWidth="6"
+        android:strokeColor="#0D0F1A"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M100,118 L170,118"
+        android:strokeWidth="6"
+        android:strokeColor="#0D0F1A"
+        android:strokeLineCap="round" />
+
+</vector>
