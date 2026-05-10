@@ -1,34 +1,53 @@
 package com.paperstack.ui.onboarding
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.paperstack.domain.model.ARXIV_CATEGORIES
+import com.paperstack.ui.theme.Spacing
 
 @Composable
 fun OnboardingScreen(
@@ -71,36 +90,64 @@ private fun NameStep(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = Spacing.md, vertical = Spacing.xl),
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = "Welcome to Paperstack",
-            style = MaterialTheme.typography.headlineLarge,
-        )
-        Text(
-            text = "What should we call you?",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        OutlinedTextField(
-            value = state.displayName,
-            onValueChange = onNameChange,
-            label = { Text("Your name") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Done,
-            ),
+        Column(
             modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(modifier = Modifier.weight(1f))
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(modifier = Modifier.height(Spacing.xl))
+            Icon(
+                imageVector = Icons.Outlined.Layers,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(Spacing.lg))
+            Text(
+                text = "Welcome to Paperstack",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            Text(
+                text = "What should we call you?",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(Spacing.lg))
+            OutlinedTextField(
+                value = state.displayName,
+                onValueChange = onNameChange,
+                placeholder = { Text("Your name") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Done,
+                ),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
         Button(
             onClick = onContinue,
             enabled = state.isNameValid,
-            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(50),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = Spacing.lg),
         ) {
-            Text("Continue")
+            Text(
+                text = "Continue",
+                modifier = Modifier.padding(vertical = Spacing.sm),
+            )
         }
     }
 }
@@ -113,78 +160,137 @@ internal fun CategoriesStep(
     modifier: Modifier = Modifier,
     confirmLabel: String = "Get Started",
 ) {
-    val grouped = ARXIV_CATEGORIES.groupBy { it.group }
-
-    Scaffold(
-        bottomBar = {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Button(
-                    onClick = onConfirm,
-                    enabled = state.canProceedFromCategories && !state.isSaving,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(if (state.isSaving) "Saving…" else confirmLabel)
-                }
-                state.error?.let { msg ->
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = msg,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        },
-        modifier = modifier,
-    ) { innerPadding ->
-        LazyColumn(
-            contentPadding = PaddingValues(
-                top = 24.dp,
-                bottom = innerPadding.calculateBottomPadding() + 16.dp,
-            ),
+    Column(modifier = modifier.fillMaxSize()) {
+        // Sticky header
+        Column(
+            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.md),
         ) {
-            item {
-                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                    Text(
-                        text = "Choose your topics",
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Select at least one category to follow.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            Text(
+                text = "Choose your topics",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            Text(
+                text = "Select at least one category to follow.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        HorizontalDivider()
+
+        // Scrollable category list
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
+            items(items = ARXIV_CATEGORIES, key = { it.code }) { category ->
+                val isSelected = state.selectedCategories.contains(category.code)
+                CategoryRow(
+                    name = category.name,
+                    code = category.code,
+                    isSelected = isSelected,
+                    onToggle = { onToggleCategory(category.code) },
+                )
             }
+        }
 
-            grouped.forEach { (group, categories) ->
-                item(key = "header_$group") {
-                    Text(
-                        text = group,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                }
+        // Sticky bottom bar
+        HorizontalDivider()
+        Column(
+            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.md),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Button(
+                onClick = onConfirm,
+                enabled = state.canProceedFromCategories && !state.isSaving,
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = if (state.isSaving) "Saving…" else confirmLabel,
+                    modifier = Modifier.padding(vertical = Spacing.sm),
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+            if (state.selectedCategories.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Spacing.sm))
+                val count = state.selectedCategories.size
+                Text(
+                    text = "$count ${if (count == 1) "category" else "categories"} selected",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            state.error?.let { msg ->
+                Spacer(modifier = Modifier.height(Spacing.sm))
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+    }
+}
 
-                items(items = categories, key = { it.code }) { category ->
-                    val checked = state.selectedCategories.contains(category.code)
-                    ListItem(
-                        headlineContent = { Text(category.name) },
-                        supportingContent = { Text(category.code) },
-                        trailingContent = {
-                            Checkbox(
-                                checked = checked,
-                                onCheckedChange = { onToggleCategory(category.code) },
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            onToggleCategory(category.code)
-                        },
-                    )
-                }
+@Composable
+private fun CategoryRow(
+    name: String,
+    code: String,
+    isSelected: Boolean,
+    onToggle: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Spacing.sm))
+            .clickable(onClick = onToggle)
+            .padding(horizontal = Spacing.md, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+            )
+            Text(
+                text = code,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(modifier = Modifier.width(Spacing.md))
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .then(
+                    if (isSelected) {
+                        Modifier.background(MaterialTheme.colorScheme.primary)
+                    } else {
+                        Modifier.border(
+                            2.dp,
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            RoundedCornerShape(4.dp),
+                        )
+                    },
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White,
+                )
             }
         }
     }

@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0008"
 title: Category Selection Screen Redesign
 depends_on: ["0006"]
