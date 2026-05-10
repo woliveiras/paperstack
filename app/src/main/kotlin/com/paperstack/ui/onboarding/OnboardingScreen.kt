@@ -23,7 +23,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -43,9 +42,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.paperstack.R
 import com.paperstack.domain.model.ARXIV_CATEGORIES
 import com.paperstack.ui.theme.Spacing
 
@@ -99,10 +100,10 @@ private fun NameStep(
         ) {
             Spacer(modifier = Modifier.height(Spacing.xl))
             Icon(
-                imageVector = Icons.Outlined.Layers,
+                painter = painterResource(R.drawable.logo_paperstack),
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = Color.Unspecified,
             )
             Spacer(modifier = Modifier.height(Spacing.lg))
             Text(
