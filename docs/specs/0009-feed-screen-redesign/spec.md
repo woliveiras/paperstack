@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0009"
 title: Feed Screen Redesign
 depends_on: ["0006"]

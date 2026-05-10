@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0010"
 title: Bottom Navigation Redesign
 depends_on: ["0006"]

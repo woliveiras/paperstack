@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0013"
 title: Detail Screen Redesign
 depends_on: ["0006"]

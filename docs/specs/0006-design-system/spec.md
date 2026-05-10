@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0006"
 title: Design System
 depends_on: []

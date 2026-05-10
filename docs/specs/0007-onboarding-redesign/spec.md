@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 number: "0007"
 title: Onboarding Screen Redesign
 depends_on: ["0006"]
