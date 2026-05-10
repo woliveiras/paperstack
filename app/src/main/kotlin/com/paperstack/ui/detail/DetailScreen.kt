@@ -40,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,7 +59,7 @@ fun DetailScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         // Custom top bar
         Surface(color = MaterialTheme.colorScheme.surface) {
-            Column {
+            Column(modifier = Modifier.statusBarsPadding()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

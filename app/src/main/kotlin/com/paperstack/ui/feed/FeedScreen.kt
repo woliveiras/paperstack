@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -115,7 +116,7 @@ private fun FeedTopBar(
     onMenuClick: () -> Unit,
 ) {
     Surface(color = MaterialTheme.colorScheme.surface) {
-        Column {
+        Column(modifier = Modifier.statusBarsPadding()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

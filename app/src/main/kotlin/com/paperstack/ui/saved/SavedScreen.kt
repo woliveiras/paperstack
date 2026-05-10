@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -66,7 +67,7 @@ fun SavedScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         // Header
         Surface(color = MaterialTheme.colorScheme.surface) {
-            Column {
+            Column(modifier = Modifier.statusBarsPadding()) {
                 Text(
                     text = "Saved",
                     style = MaterialTheme.typography.titleLarge,
