@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0009"
 title: Feed Screen Redesign
 depends_on: ["0006"]

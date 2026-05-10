@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0014"
 title: Drawer Redesign
 depends_on: ["0006"]

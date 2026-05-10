@@ -1,6 +1,9 @@
 package com.paperstack.ui.feed
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,26 +13,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
@@ -39,12 +45,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.paperstack.domain.model.ARXIV_CATEGORIES
 import com.paperstack.domain.model.Paper
 import com.paperstack.domain.model.Settings
+import com.paperstack.ui.theme.Spacing
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,37 +84,71 @@ fun FeedScreen(
             )
         },
     ) {
-        Scaffold(
-            topBar = {
-                val titleText = ARXIV_CATEGORIES.firstOrNull { it.code == settings.activeCategory }?.name
-                    ?: settings.activeCategory
-                TopAppBar(
-                    title = { Text(titleText) },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Open menu")
-                        }
-                    },
-                )
-            },
-        ) { innerPadding ->
+        Column(modifier = Modifier.fillMaxSize()) {
+            FeedTopBar(
+                currentCategory = ARXIV_CATEGORIES.firstOrNull { it.code == settings.activeCategory }?.name
+                    ?: settings.activeCategory,
+                onMenuClick = { scope.launch { drawerState.open() } },
+            )
             when {
-                state.isLoading -> LoadingContent(modifier = Modifier.padding(innerPadding))
+                state.isLoading -> LoadingContent()
                 state.error != null && state.visiblePapers.isEmpty() -> ErrorContent(
                     message = state.error!!,
                     onRetry = { viewModel.retry(settings.activeCategory) },
-                    modifier = Modifier.padding(innerPadding),
                 )
                 else -> FeedContent(
-                        state = state,
-                        isRefreshing = state.isLoading && state.visiblePapers.isNotEmpty(),
-                        onRefresh = { viewModel.refresh(settings.activeCategory) },
-                        onPaperClick = onPaperClick,
-                        onLoadMore = viewModel::loadMore,
-                        onToggleSave = viewModel::toggleSave,
-                        modifier = Modifier.padding(innerPadding),
-                    )
+                    state = state,
+                    isRefreshing = state.isLoading && state.visiblePapers.isNotEmpty(),
+                    onRefresh = { viewModel.refresh(settings.activeCategory) },
+                    onPaperClick = onPaperClick,
+                    onLoadMore = viewModel::loadMore,
+                    onToggleSave = viewModel::toggleSave,
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun FeedTopBar(
+    currentCategory: String,
+    onMenuClick: () -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.md, vertical = Spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Menu,
+                        contentDescription = "Open menu",
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = "Paperstack",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = currentCategory,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Spacer(modifier = Modifier.size(40.dp))
+            }
+            HorizontalDivider()
         }
     }
 }
@@ -125,12 +167,12 @@ private fun ErrorContent(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxSize().padding(24.dp),
+        modifier = modifier.fillMaxSize().padding(Spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.weight(1f))
         Text(text = message, style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Spacing.md))
         Button(onClick = onRetry) { Text("Retry") }
         Spacer(modifier = Modifier.weight(1f))
     }
@@ -156,7 +198,8 @@ private fun FeedContent(
     ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding = PaddingValues(Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         items(items = state.visiblePapers, key = { it.id }) { paper ->
             PaperCard(
@@ -169,31 +212,24 @@ private fun FeedContent(
 
         if (state.canShowLoadMore) {
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center,
+                TextButton(
+                    onClick = onLoadMore,
+                    enabled = !state.isPrefetching || state.buffer.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Spacing.sm),
                 ) {
-                    OutlinedButton(
-                        onClick = onLoadMore,
-                        enabled = !state.isPrefetching || state.buffer.isNotEmpty(),
-                    ) {
-                        if (state.isPrefetching && state.buffer.isEmpty()) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .height(18.dp)
-                                        .width(18.dp),
-                                    strokeWidth = 2.dp,
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Load more")
-                            }
-                        } else {
-                            Text("Load more")
-                        }
+                    if (state.isPrefetching && state.buffer.isEmpty()) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.sm))
                     }
+                    Text(
+                        text = "Load more papers",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                    )
                 }
             }
         }
@@ -202,36 +238,43 @@ private fun FeedContent(
 }
 
 @Composable
-private fun PaperCard(
+internal fun PaperCard(
     paper: Paper,
     isSaved: Boolean,
     onClick: () -> Unit,
     onToggleSave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp)
             .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
     ) {
-        Column(modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 12.dp)) {
+        Column(modifier = Modifier.padding(Spacing.md)) {
             Row(verticalAlignment = Alignment.Top) {
                 Text(
                     text = paper.title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = onToggleSave) {
-                    Icon(
-                        imageVector = if (isSaved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                        contentDescription = if (isSaved) "Remove from saved" else "Save paper",
-                        tint = if (isSaved) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                Spacer(modifier = Modifier.width(Spacing.sm))
+                Icon(
+                    imageVector = if (isSaved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                    contentDescription = if (isSaved) "Remove from saved" else "Save paper",
+                    tint = if (isSaved) MaterialTheme.colorScheme.onSurface
+                           else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable(onClick = onToggleSave),
+                )
             }
             Spacer(modifier = Modifier.height(6.dp))
 
@@ -245,15 +288,21 @@ private fun PaperCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = paper.submittedDate.take(10), // "2026-05-01"
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+            ) {
+                Text(
+                    text = paper.submittedDate.take(10),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+                )
+            }
 
             if (!paper.comment.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 Text(
                     text = paper.comment,
                     style = MaterialTheme.typography.labelLarge,
@@ -261,7 +310,7 @@ private fun PaperCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = paper.abstract.take(200) + if (paper.abstract.length > 200) "…" else "",
                 style = MaterialTheme.typography.bodyMedium,

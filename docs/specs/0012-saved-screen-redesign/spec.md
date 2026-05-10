@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0012"
 title: Saved Screen Redesign
 depends_on: ["0006", "0011"]

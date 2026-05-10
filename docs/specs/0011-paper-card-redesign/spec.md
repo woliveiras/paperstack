@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0011"
 title: PaperCard Redesign
 depends_on: ["0006"]

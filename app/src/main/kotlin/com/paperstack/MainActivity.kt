@@ -5,21 +5,33 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmarks
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -34,6 +46,7 @@ import com.paperstack.ui.onboarding.OnboardingScreen
 import com.paperstack.ui.onboarding.OnboardingViewModel
 import com.paperstack.ui.saved.SavedScreen
 import com.paperstack.ui.theme.PaperstackTheme
+import com.paperstack.ui.theme.Spacing
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -61,46 +74,18 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         bottomBar = {
                             if (showBottomNav) {
-                                NavigationBar {
-                                    NavigationBarItem(
-                                        selected = currentRoute == "feed",
-                                        onClick = {
-                                            navController.navigate("feed") {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
+                                PaperstackBottomNav(
+                                    currentRoute = currentRoute,
+                                    onTabSelected = { route ->
+                                        navController.navigate(route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
                                             }
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = if (currentRoute == "feed") Icons.Filled.Home else Icons.Outlined.Home,
-                                                contentDescription = "Feed",
-                                            )
-                                        },
-                                        label = { Text("Feed") },
-                                    )
-                                    NavigationBarItem(
-                                        selected = currentRoute == "saved",
-                                        onClick = {
-                                            navController.navigate("saved") {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = if (currentRoute == "saved") Icons.Filled.Bookmarks else Icons.Outlined.BookmarkBorder,
-                                                contentDescription = "Saved",
-                                            )
-                                        },
-                                        label = { Text("Saved") },
-                                    )
-                                }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    },
+                                )
                             }
                         },
                     ) { _ ->
@@ -170,4 +155,69 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+private fun PaperstackBottomNav(
+    currentRoute: String?,
+    onTabSelected: (String) -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column {
+            HorizontalDivider()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BottomNavTab(
+                    label = "Feed",
+                    isActive = currentRoute == "feed",
+                    activeIcon = Icons.Filled.Home,
+                    inactiveIcon = Icons.Outlined.Home,
+                    onClick = { onTabSelected("feed") },
+                )
+                BottomNavTab(
+                    label = "Saved",
+                    isActive = currentRoute == "saved",
+                    activeIcon = Icons.Filled.Bookmark,
+                    inactiveIcon = Icons.Outlined.BookmarkBorder,
+                    onClick = { onTabSelected("saved") },
+                )
+            }
+        }
+    }
+}
 
+@Composable
+private fun BottomNavTab(
+    label: String,
+    isActive: Boolean,
+    activeIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    inactiveIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+) {
+    val color = if (isActive) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Column(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(
+            imageVector = if (isActive) activeIcon else inactiveIcon,
+            contentDescription = label,
+            tint = color,
+            modifier = Modifier.size(24.dp),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = color,
+        )
+    }
+}

@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: Implemented
 number: "0010"
 title: Bottom Navigation Redesign
 depends_on: ["0006"]
