@@ -1,6 +1,7 @@
 package com.paperstack.ui.feed
 
 import com.paperstack.domain.model.Paper
+import java.time.LocalDate
 
 data class FeedState(
     val visiblePapers: List<Paper> = emptyList(),
@@ -11,6 +12,8 @@ data class FeedState(
     val isPrefetching: Boolean = false,
     val error: String? = null,
     val savedIds: Set<String> = emptySet(),
+    val fromDate: LocalDate? = null,
+    val toDate: LocalDate? = null,
 ) {
     val hasMore: Boolean
         get() = visiblePapers.size + buffer.size < totalResults ||

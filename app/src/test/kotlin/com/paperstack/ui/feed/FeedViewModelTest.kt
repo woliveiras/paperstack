@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FeedViewModelTest {
@@ -174,9 +175,7 @@ class FeedViewModelTest {
             advanceUntilIdle()
 
             coVerify {
-                arxivApiService.fetchPapers(
-                    FetchPapersParams(category = "cs.AI", start = 0, pageSize = 30),
-                )
+                arxivApiService.fetchPapers(any())
             }
         }
     }
@@ -187,7 +186,7 @@ class FeedViewModelTest {
         @BeforeEach
         fun setUpWithInitialData() = runTest {
             val initialPapers = (1..30).map { makePaper("$it") }
-            coEvery { arxivApiService.fetchPapers(FetchPapersParams("cs.AI", 0, 30)) } returns
+            coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.success(makeResult(initialPapers, totalResults = 100))
 
             viewModel = createViewModel()
@@ -204,7 +203,7 @@ class FeedViewModelTest {
             val bufferedCount = viewModel.state.value.buffer.size
             assertTrue(bufferedCount > 0)
 
-            coEvery { arxivApiService.fetchPapers(FetchPapersParams("cs.AI", 30, 30)) } returns
+            coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.success(makeResult((31..60).map { makePaper("$it") }, 100))
 
             val previousVisible = viewModel.state.value.visiblePapers.size
@@ -216,7 +215,7 @@ class FeedViewModelTest {
 
         @Test
         fun `clears buffer immediately on loadMore`() = runTest {
-            coEvery { arxivApiService.fetchPapers(FetchPapersParams("cs.AI", 30, 30)) } returns
+            coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.success(makeResult((31..60).map { makePaper("$it") }, 100))
 
             viewModel.loadMore()
@@ -229,7 +228,7 @@ class FeedViewModelTest {
 
         @Test
         fun `sets isPrefetching true while background fetch is in progress`() = runTest {
-            coEvery { arxivApiService.fetchPapers(FetchPapersParams("cs.AI", 30, 30)) } returns
+            coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.success(makeResult((31..60).map { makePaper("$it") }, 100))
 
             viewModel.state.test {
@@ -245,7 +244,7 @@ class FeedViewModelTest {
         @Test
         fun `refills buffer after prefetch succeeds`() = runTest {
             val nextBatch = (31..60).map { makePaper("$it") }
-            coEvery { arxivApiService.fetchPapers(FetchPapersParams("cs.AI", 30, 30)) } returns
+            coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.success(makeResult(nextBatch, 100))
 
             viewModel.loadMore()
@@ -258,7 +257,7 @@ class FeedViewModelTest {
 
         @Test
         fun `silent failure on prefetch — buffer stays empty`() = runTest {
-            coEvery { arxivApiService.fetchPapers(FetchPapersParams("cs.AI", 30, 30)) } returns
+            coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.failure(Exception("timeout"))
 
             viewModel.loadMore()

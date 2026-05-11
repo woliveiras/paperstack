@@ -6,6 +6,8 @@ data class FetchPapersParams(
     val category: String,
     val start: Int,
     val pageSize: Int = 30,
+    val fromDate: String? = null,
+    val toDate: String? = null,
 )
 
 data class FetchPapersResult(

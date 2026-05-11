@@ -65,7 +65,11 @@ class ArxivApiServiceImpl @Inject constructor(
     }
 
     internal fun buildUrl(params: FetchPapersParams): String {
-        val query = "cat:${params.category}"
+        val dateFilter = buildString {
+            params.fromDate?.let { append(" date-from:$it") }
+            params.toDate?.let { append(" date-to:$it") }
+        }
+        val query = "cat:${params.category}$dateFilter"
         return "$BASE_URL?search_query=$query" +
             "&sortBy=submittedDate" +
             "&sortOrder=descending" +

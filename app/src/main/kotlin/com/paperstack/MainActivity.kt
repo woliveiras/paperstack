@@ -90,8 +90,12 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         },
-                    ) { _ ->
-                        NavHost(navController = navController, startDestination = destination) {
+                    ) { innerPadding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = destination,
+                            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
+                        ) {
                             composable("onboarding") {
                                 OnboardingScreen(
                                     onComplete = {

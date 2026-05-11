@@ -11,17 +11,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 private const val PAGE_SIZE = 30
 private const val VISIBLE_SIZE = 15
+private const val DEFAULT_DAYS_BACK = 3
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
@@ -50,7 +51,6 @@ class FeedViewModel @Inject constructor(
 
     private fun switchCategory(category: String) {
         if (category == currentCategory) return
-        // Persist current state before switching
         if (currentCategory.isNotEmpty()) cache[currentCategory] = _state.value
         currentCategory = category
 
@@ -58,15 +58,34 @@ class FeedViewModel @Inject constructor(
         if (cached != null) {
             _state.value = cached.copy(savedIds = _state.value.savedIds)
         } else {
-            _state.value = FeedState(isLoading = true, savedIds = _state.value.savedIds)
+            val defaultDates = getDefaultDateRange()
+            _state.value = FeedState(
+                isLoading = true,
+                savedIds = _state.value.savedIds,
+                fromDate = defaultDates.first,
+                toDate = defaultDates.second,
+            )
             fetchInitial(category)
         }
     }
 
+    private fun getDefaultDateRange(): Pair<LocalDate, LocalDate> {
+        val toDate = LocalDate.now()
+        val fromDate = toDate.minusDays(DEFAULT_DAYS_BACK.toLong())
+        return Pair(fromDate, toDate)
+    }
+
     private fun fetchInitial(category: String) {
+        val dates = _state.value
         viewModelScope.launch {
             val result = arxivApiService.fetchPapers(
-                FetchPapersParams(category = category, start = 0, pageSize = PAGE_SIZE),
+                FetchPapersParams(
+                    category = category,
+                    start = 0,
+                    pageSize = PAGE_SIZE,
+                    fromDate = dates.fromDate?.toString(),
+                    toDate = dates.toDate?.toString(),
+                ),
             )
             result.fold(
                 onSuccess = { fetched ->
@@ -112,7 +131,13 @@ class FeedViewModel @Inject constructor(
 
         viewModelScope.launch {
             val result = arxivApiService.fetchPapers(
-                FetchPapersParams(category = category, start = current.nextStart, pageSize = PAGE_SIZE),
+                FetchPapersParams(
+                    category = category,
+                    start = current.nextStart,
+                    pageSize = PAGE_SIZE,
+                    fromDate = current.fromDate?.toString(),
+                    toDate = current.toDate?.toString(),
+                ),
             )
             result.fold(
                 onSuccess = { fetched ->
@@ -137,15 +162,47 @@ class FeedViewModel @Inject constructor(
 
     fun retry(category: String) {
         cache.remove(category)
-        _state.update { FeedState(isLoading = true) }
+        val dates = _state.value
+        _state.update { FeedState(isLoading = true, fromDate = dates.fromDate, toDate = dates.toDate) }
         fetchInitial(category)
     }
 
     fun refresh(category: String) {
         if (_state.value.isLoading) return
         cache.remove(category)
-        _state.update { FeedState(isLoading = true, savedIds = _state.value.savedIds) }
+        val dates = _state.value
+        _state.update {
+            FeedState(
+                isLoading = true,
+                savedIds = dates.savedIds,
+                fromDate = dates.fromDate,
+                toDate = dates.toDate,
+            )
+        }
         fetchInitial(category)
+    }
+
+    fun setDateFilter(fromDate: LocalDate?, toDate: LocalDate?) {
+        val dates = _state.value
+        if (dates.fromDate == fromDate && dates.toDate == toDate) return
+
+        val effectiveFromDate = fromDate ?: LocalDate.now().minusDays(DEFAULT_DAYS_BACK.toLong())
+        val effectiveToDate = toDate ?: LocalDate.now()
+
+        cache.remove(currentCategory)
+        _state.update {
+            FeedState(
+                isLoading = true,
+                savedIds = it.savedIds,
+                fromDate = effectiveFromDate,
+                toDate = effectiveToDate,
+            )
+        }
+        fetchInitial(currentCategory)
+    }
+
+    fun clearDateFilter() {
+        setDateFilter(null, null)
     }
 
     fun toggleSave(paper: Paper) {
