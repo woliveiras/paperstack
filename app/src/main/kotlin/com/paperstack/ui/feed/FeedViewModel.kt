@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperstack.data.remote.ArxivApiService
 import com.paperstack.data.remote.FetchPapersParams
+import com.paperstack.data.remote.SortOrder
 import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.data.repository.SettingsRepository
 import com.paperstack.domain.model.Paper
@@ -18,11 +19,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 private const val PAGE_SIZE = 30
 private const val VISIBLE_SIZE = 15
-private const val DEFAULT_DAYS_BACK = 3
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
@@ -58,39 +60,46 @@ class FeedViewModel @Inject constructor(
         if (cached != null) {
             _state.value = cached.copy(savedIds = _state.value.savedIds)
         } else {
-            val defaultDates = getDefaultDateRange()
             _state.value = FeedState(
                 isLoading = true,
                 savedIds = _state.value.savedIds,
-                fromDate = defaultDates.first,
-                toDate = defaultDates.second,
             )
             fetchInitial(category)
         }
     }
 
-    private fun getDefaultDateRange(): Pair<LocalDate, LocalDate> {
-        val toDate = LocalDate.now()
-        val fromDate = toDate.minusDays(DEFAULT_DAYS_BACK.toLong())
-        return Pair(fromDate, toDate)
+    private fun filterByDate(papers: List<Paper>, from: LocalDate?, to: LocalDate?): List<Paper> {
+        if (from == null && to == null) return papers
+        return papers.filter { paper ->
+            val paperDate = try {
+                ZonedDateTime.parse(paper.submittedDate, DateTimeFormatter.ISO_DATE_TIME).toLocalDate()
+            } catch (_: Exception) {
+                return@filter true
+            }
+            val afterFrom = from == null || !paperDate.isBefore(from)
+            val beforeTo = to == null || !paperDate.isAfter(to)
+            afterFrom && beforeTo
+        }
     }
 
     private fun fetchInitial(category: String) {
-        val dates = _state.value
+        val state = _state.value
         viewModelScope.launch {
             val result = arxivApiService.fetchPapers(
                 FetchPapersParams(
                     category = category,
                     start = 0,
                     pageSize = PAGE_SIZE,
-                    fromDate = dates.fromDate?.toString(),
-                    toDate = dates.toDate?.toString(),
+                    fromDate = state.fromDate?.toString(),
+                    toDate = state.toDate?.toString(),
+                    sortOrder = state.sortOrder,
                 ),
             )
             result.fold(
                 onSuccess = { fetched ->
-                    val visible = fetched.papers.take(VISIBLE_SIZE)
-                    val buffer = fetched.papers.drop(VISIBLE_SIZE)
+                    val filtered = filterByDate(fetched.papers, state.fromDate, state.toDate)
+                    val visible = filtered.take(VISIBLE_SIZE)
+                    val buffer = filtered.drop(VISIBLE_SIZE)
                     _state.update {
                         it.copy(
                             visiblePapers = visible,
@@ -141,7 +150,8 @@ class FeedViewModel @Inject constructor(
             )
             result.fold(
                 onSuccess = { fetched ->
-                    val newBuffer = fetched.papers.take(VISIBLE_SIZE)
+                    val filtered = filterByDate(fetched.papers, current.fromDate, current.toDate)
+                    val newBuffer = filtered.take(VISIBLE_SIZE)
                     _state.update { state ->
                         state.copy(
                             buffer = newBuffer,
@@ -183,26 +193,51 @@ class FeedViewModel @Inject constructor(
     }
 
     fun setDateFilter(fromDate: LocalDate?, toDate: LocalDate?) {
-        val dates = _state.value
-        if (dates.fromDate == fromDate && dates.toDate == toDate) return
-
-        val effectiveFromDate = fromDate ?: LocalDate.now().minusDays(DEFAULT_DAYS_BACK.toLong())
-        val effectiveToDate = toDate ?: LocalDate.now()
+        val current = _state.value
+        if (current.fromDate == fromDate && current.toDate == toDate) return
 
         cache.remove(currentCategory)
         _state.update {
             FeedState(
                 isLoading = true,
                 savedIds = it.savedIds,
-                fromDate = effectiveFromDate,
-                toDate = effectiveToDate,
+                fromDate = fromDate,
+                toDate = toDate,
+                sortOrder = it.sortOrder,
             )
         }
         fetchInitial(currentCategory)
     }
 
     fun clearDateFilter() {
-        setDateFilter(null, null)
+        val current = _state.value
+        if (current.fromDate == null && current.toDate == null) return
+
+        cache.remove(currentCategory)
+        _state.update {
+            FeedState(
+                isLoading = true,
+                savedIds = it.savedIds,
+                fromDate = null,
+                toDate = null,
+                sortOrder = it.sortOrder,
+            )
+        }
+        fetchInitial(currentCategory)
+    }
+
+    fun setSortOrder(sortOrder: SortOrder) {
+        val current = _state.value
+        if (current.sortOrder == sortOrder) return
+
+        cache.remove(currentCategory)
+        _state.update {
+            it.copy(
+                isLoading = true,
+                sortOrder = sortOrder,
+            )
+        }
+        fetchInitial(currentCategory)
     }
 
     fun toggleSave(paper: Paper) {

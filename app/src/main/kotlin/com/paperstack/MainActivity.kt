@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,10 +40,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.paperstack.ui.detail.DetailScreen
 import com.paperstack.ui.feed.FeedScreen
+import com.paperstack.ui.feed.FeedViewModel
+import com.paperstack.ui.feed.FilterScreen
 import com.paperstack.ui.onboarding.CategoriesStep
 import com.paperstack.ui.onboarding.OnboardingScreen
 import com.paperstack.ui.onboarding.OnboardingViewModel
@@ -53,7 +57,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private val bottomNavRoutes = listOf("feed", "saved")
+private val bottomNavRoutes = listOf("feed_home", "saved")
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -105,20 +109,56 @@ class MainActivity : ComponentActivity() {
                                     },
                                 )
                             }
-                            composable("feed") {
-                                settings?.let { s ->
-                                    FeedScreen(
-                                        settings = s,
-                                        onPaperClick = { paper ->
-                                            val paperJson = Uri.encode(Json.encodeToString(paper))
-                                            navController.navigate("detail/$paperJson")
+                            navigation(
+                                startDestination = "feed_home",
+                                route = "feed",
+                            ) {
+                                composable("feed_home") { backStackEntry ->
+                                    val parentEntry = remember(backStackEntry) {
+                                        navController.getBackStackEntry("feed")
+                                    }
+                                    val feedViewModel: FeedViewModel = hiltViewModel(parentEntry)
+                                    settings?.let { s ->
+                                        FeedScreen(
+                                            settings = s,
+                                            viewModel = feedViewModel,
+                                            onPaperClick = { paper ->
+                                                val paperJson = Uri.encode(Json.encodeToString(paper))
+                                                navController.navigate("detail/$paperJson")
+                                            },
+                                            onAddCategories = {
+                                                navController.navigate("add-categories")
+                                            },
+                                            onCategorySwitch = { code ->
+                                                mainViewModel.setActiveCategory(code)
+                                            },
+                                            onNavigateToFilter = {
+                                                navController.navigate("filter_screen")
+                                            },
+                                        )
+                                    }
+                                }
+                                composable("filter_screen") { backStackEntry ->
+                                    val parentEntry = remember(backStackEntry) {
+                                        navController.getBackStackEntry("feed")
+                                    }
+                                    val feedViewModel: FeedViewModel = hiltViewModel(parentEntry)
+                                    val feedState by feedViewModel.state.collectAsState()
+                                    FilterScreen(
+                                        fromDate = feedState.fromDate,
+                                        toDate = feedState.toDate,
+                                        sortOrder = feedState.sortOrder,
+                                        onApply = { from, to, sort ->
+                                            feedViewModel.setDateFilter(from, to)
+                                            feedViewModel.setSortOrder(sort)
+                                            navController.popBackStack()
                                         },
-                                        onAddCategories = {
-                                            navController.navigate("add-categories")
+                                        onClear = {
+                                            feedViewModel.clearDateFilter()
+                                            feedViewModel.setSortOrder(com.paperstack.data.remote.SortOrder.SUBMITTED_DATE)
+                                            navController.popBackStack()
                                         },
-                                        onCategorySwitch = { code ->
-                                            mainViewModel.setActiveCategory(code)
-                                        },
+                                        onBack = { navController.popBackStack() },
                                     )
                                 }
                             }
@@ -178,7 +218,7 @@ private fun PaperStackBottomNav(
             ) {
                 BottomNavTab(
                     label = "Feed",
-                    isActive = currentRoute == "feed",
+                    isActive = currentRoute == "feed_home",
                     activeIcon = Icons.Filled.Home,
                     inactiveIcon = Icons.Outlined.Home,
                     onClick = { onTabSelected("feed") },

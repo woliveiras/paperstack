@@ -25,12 +25,9 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -42,7 +39,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
@@ -73,12 +69,12 @@ fun FeedScreen(
     onPaperClick: (Paper) -> Unit,
     onAddCategories: () -> Unit,
     onCategorySwitch: (String) -> Unit,
+    onNavigateToFilter: () -> Unit,
     viewModel: FeedViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var showDatePicker by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -101,7 +97,7 @@ fun FeedScreen(
                 currentCategory = ARXIV_CATEGORIES.firstOrNull { it.code == settings.activeCategory }?.name
                     ?: settings.activeCategory,
                 onMenuClick = { scope.launch { drawerState.open() } },
-                onFilterClick = { showDatePicker = true },
+                onFilterClick = onNavigateToFilter,
             )
             when {
                 state.isLoading -> LoadingContent()
@@ -119,22 +115,6 @@ fun FeedScreen(
                 )
             }
         }
-    }
-
-    if (showDatePicker) {
-        DateFilterDialog(
-            initialFromDate = state.fromDate,
-            initialToDate = state.toDate,
-            onDismiss = { showDatePicker = false },
-            onApply = { fromDate, toDate ->
-                viewModel.setDateFilter(fromDate, toDate)
-                showDatePicker = false
-            },
-            onClear = {
-                viewModel.clearDateFilter()
-                showDatePicker = false
-            },
-        )
     }
 }
 
@@ -187,107 +167,6 @@ private fun FeedTopBar(
             HorizontalDivider()
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DateFilterDialog(
-    initialFromDate: LocalDate?,
-    initialToDate: LocalDate?,
-    onDismiss: () -> Unit,
-    onApply: (LocalDate?, LocalDate?) -> Unit,
-    onClear: () -> Unit,
-) {
-    var showFromPicker by remember { mutableStateOf(false) }
-    var showToPicker by remember { mutableStateOf(false) }
-
-    var selectedFromDate by remember { mutableStateOf(initialFromDate) }
-    var selectedToDate by remember { mutableStateOf(initialToDate) }
-
-    val fromDatePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialFromDate?.toEpochDay()?.times(86400000L),
-    )
-    val toDatePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialToDate?.toEpochDay()?.times(86400000L),
-    )
-
-    if (showFromPicker) {
-        DatePickerDialog(
-            onDismissRequest = { showFromPicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    fromDatePickerState.selectedDateMillis?.let {
-                        selectedFromDate = LocalDate.ofEpochDay(it / 86400000L)
-                    }
-                    showFromPicker = false
-                }) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showFromPicker = false }) { Text("Cancel") }
-            },
-        ) {
-            DatePicker(state = fromDatePickerState)
-        }
-    }
-
-    if (showToPicker) {
-        DatePickerDialog(
-            onDismissRequest = { showToPicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    toDatePickerState.selectedDateMillis?.let {
-                        selectedToDate = LocalDate.ofEpochDay(it / 86400000L)
-                    }
-                    showToPicker = false
-                }) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showToPicker = false }) { Text("Cancel") }
-            },
-        ) {
-            DatePicker(state = toDatePickerState)
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Filter by date") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("From:")
-                    TextButton(onClick = { showFromPicker = true }) {
-                        Text(selectedFromDate?.toString() ?: "Select date")
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("To:")
-                    TextButton(onClick = { showToPicker = true }) {
-                        Text(selectedToDate?.toString() ?: "Select date")
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onApply(selectedFromDate, selectedToDate) }) {
-                Text("Apply")
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onClear) { Text("Clear") }
-                TextButton(onClick = onDismiss) { Text("Cancel") }
-            }
-        },
-    )
 }
 
 @Composable

@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.paperstack.data.remote.ArxivApiService
 import com.paperstack.data.remote.FetchPapersParams
 import com.paperstack.data.remote.FetchPapersResult
+import com.paperstack.data.remote.SortOrder
 import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.data.repository.SettingsRepository
 import com.paperstack.domain.model.Paper
@@ -295,6 +296,101 @@ class FeedViewModelTest {
             advanceUntilIdle()
 
             assertEquals("stat.ML", viewModel.state.value.visiblePapers.first().primaryCategory)
+        }
+    }
+
+    @Nested
+    inner class `Date filter` {
+
+        @BeforeEach
+        fun setUpWithInitialData() = runTest {
+            val initialPapers = (1..30).map { makePaper("$it") }
+            coEvery { arxivApiService.fetchPapers(any()) } returns
+                Result.success(makeResult(initialPapers, totalResults = 100))
+
+            viewModel = createViewModel()
+
+            settingsFlow.value = Settings(
+                displayName = "Alice", selectedCategories = listOf("cs.AI"),
+                activeCategory = "cs.AI", onboardingCompleted = true,
+            )
+            advanceUntilIdle()
+        }
+
+        @Test
+        fun `setDateFilter triggers new fetch with fromDate and toDate`() = runTest {
+            val fromDate = LocalDate.of(2026, 1, 1)
+            val toDate = LocalDate.of(2026, 5, 1)
+
+            viewModel.setDateFilter(fromDate, toDate)
+            advanceUntilIdle()
+
+            coVerify {
+                arxivApiService.fetchPapers(
+                    match { params ->
+                        params.fromDate == "2026-01-01" && params.toDate == "2026-05-01"
+                    },
+                )
+            }
+        }
+
+        @Test
+        fun `setDateFilter clears cache for current category`() = runTest {
+            val fromDate = LocalDate.of(2026, 1, 1)
+            val toDate = LocalDate.of(2026, 5, 1)
+
+            viewModel.state.test {
+                viewModel.setDateFilter(fromDate, toDate)
+                skipItems(1) // skip current state
+                val loadingState = awaitItem()
+                assertTrue(loadingState.isLoading)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+        @Test
+        fun `clearDateFilter resets to default date range`() = runTest {
+            val fromDate = LocalDate.of(2026, 1, 1)
+            val toDate = LocalDate.of(2026, 5, 1)
+
+            viewModel.setDateFilter(fromDate, toDate)
+            advanceUntilIdle()
+
+            viewModel.clearDateFilter()
+            advanceUntilIdle()
+
+            val state = viewModel.state.value
+            // clearDateFilter removes the date filter entirely
+            assertNull(state.fromDate)
+            assertNull(state.toDate)
+        }
+
+        @Test
+        fun `setDateFilter with same dates does not re-fetch`() = runTest {
+            val fromDate = LocalDate.of(2026, 1, 1)
+            val toDate = LocalDate.of(2026, 5, 1)
+
+            viewModel.setDateFilter(fromDate, toDate)
+            advanceUntilIdle()
+
+            viewModel.setDateFilter(fromDate, toDate)
+
+            // Should not trigger another fetch (skips due to same dates)
+            // Initial fetch + one filter fetch = 2 total
+            coVerify(exactly = 2) {
+                arxivApiService.fetchPapers(any())
+            }
+        }
+
+        @Test
+        fun `setDateFilter with null clears date filter`() = runTest {
+            viewModel.setDateFilter(null, null)
+            advanceUntilIdle()
+
+            val state = viewModel.state.value
+            // null means no date filter is active
+            assertNull(state.fromDate)
+            assertNull(state.toDate)
         }
     }
 }

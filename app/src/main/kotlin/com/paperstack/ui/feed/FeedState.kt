@@ -1,5 +1,6 @@
 package com.paperstack.ui.feed
 
+import com.paperstack.data.remote.SortOrder
 import com.paperstack.domain.model.Paper
 import java.time.LocalDate
 
@@ -14,6 +15,7 @@ data class FeedState(
     val savedIds: Set<String> = emptySet(),
     val fromDate: LocalDate? = null,
     val toDate: LocalDate? = null,
+    val sortOrder: SortOrder = SortOrder.SUBMITTED_DATE,
 ) {
     val hasMore: Boolean
         get() = visiblePapers.size + buffer.size < totalResults ||

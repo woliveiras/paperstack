@@ -30,9 +30,7 @@ class ArxivApiServiceImpl @Inject constructor(
         val url = buildUrl(params)
         val request = Request.Builder().url(url).build()
         return try {
-            val result = executeWithRetry(request)
-            lastRequestTimeMs = System.currentTimeMillis()
-            result
+            executeWithRetry(request)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -48,30 +46,37 @@ class ArxivApiServiceImpl @Inject constructor(
         var backoffMs = 1_000L
         while (attempt < MAX_RETRIES) {
             val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
-            when (response.code) {
-                200 -> {
-                    val body = response.body ?: return Result.failure(IOException("Empty body"))
-                    return Result.success(parseResponse(body.byteStream()))
+            lastRequestTimeMs = System.currentTimeMillis()
+            try {
+                when (response.code) {
+                    200 -> {
+                        val body = response.body
+                            ?: return Result.failure(IOException("Empty body"))
+                        return Result.success(parseResponse(body.byteStream()))
+                    }
+                    429, 503 -> {
+                        attempt++
+                        if (attempt < MAX_RETRIES) delay(backoffMs)
+                        backoffMs *= 2
+                    }
+                    else -> return Result.failure(IOException("HTTP ${response.code}"))
                 }
-                503 -> {
-                    attempt++
-                    if (attempt < MAX_RETRIES) delay(backoffMs)
-                    backoffMs *= 2
-                }
-                else -> return Result.failure(IOException("HTTP ${response.code}"))
+            } finally {
+                response.close()
             }
         }
-        return Result.failure(IOException("Failed after $MAX_RETRIES retries (503)"))
+        return Result.failure(IOException("Failed after $MAX_RETRIES retries"))
     }
 
     internal fun buildUrl(params: FetchPapersParams): String {
-        val dateFilter = buildString {
-            params.fromDate?.let { append(" date-from:$it") }
-            params.toDate?.let { append(" date-to:$it") }
+        val query = "cat:${params.category}"
+        val sortBy = when (params.sortOrder) {
+            SortOrder.RELEVANCE -> "relevance"
+            SortOrder.SUBMITTED_DATE -> "submittedDate"
+            SortOrder.LAST_UPDATED_DATE -> "lastUpdatedDate"
         }
-        val query = "cat:${params.category}$dateFilter"
         return "$BASE_URL?search_query=$query" +
-            "&sortBy=submittedDate" +
+            "&sortBy=$sortBy" +
             "&sortOrder=descending" +
             "&start=${params.start}" +
             "&max_results=${params.pageSize}"

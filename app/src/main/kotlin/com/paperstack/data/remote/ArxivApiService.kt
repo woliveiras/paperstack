@@ -2,12 +2,19 @@ package com.paperstack.data.remote
 
 import com.paperstack.domain.model.Paper
 
+enum class SortOrder {
+    RELEVANCE,
+    SUBMITTED_DATE,
+    LAST_UPDATED_DATE,
+}
+
 data class FetchPapersParams(
     val category: String,
     val start: Int,
     val pageSize: Int = 30,
     val fromDate: String? = null,
     val toDate: String? = null,
+    val sortOrder: SortOrder = SortOrder.SUBMITTED_DATE,
 )
 
 data class FetchPapersResult(
