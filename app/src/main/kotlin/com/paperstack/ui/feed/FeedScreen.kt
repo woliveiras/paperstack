@@ -2,9 +2,8 @@ package com.paperstack.ui.feed
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,7 +36,6 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -45,7 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,6 +53,12 @@ import com.paperstack.domain.model.Paper
 import com.paperstack.domain.model.Settings
 import com.paperstack.ui.theme.Spacing
 import kotlinx.coroutines.launch
+
+private const val PAPER_CONTENT_TYPE = "paper"
+private const val LOAD_MORE_CONTENT_TYPE = "load_more"
+private const val ABSTRACT_PREVIEW_LENGTH = 120
+private const val ABSTRACT_MAX_LINES = 2
+private const val TITLE_MAX_LINES = 2
 
 @Composable
 fun FeedScreen(
@@ -73,17 +77,19 @@ fun FeedScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            DrawerContent(
-                settings = settings,
-                onCategorySelected = { code ->
-                    onCategorySwitch(code)
-                    scope.launch { drawerState.close() }
-                },
-                onAddCategories = {
-                    scope.launch { drawerState.close() }
-                    onAddCategories()
-                },
-            )
+            if (drawerState.isOpen || drawerState.targetValue == DrawerValue.Open) {
+                DrawerContent(
+                    settings = settings,
+                    onCategorySelected = { code ->
+                        onCategorySwitch(code)
+                        scope.launch { drawerState.close() }
+                    },
+                    onAddCategories = {
+                        scope.launch { drawerState.close() }
+                        onAddCategories()
+                    },
+                )
+            }
         },
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -94,17 +100,22 @@ fun FeedScreen(
                 onFilterClick = onNavigateToFilter,
             )
             when {
-                state.isLoading -> LoadingContent()
+                state.isLoading -> LoadingContent(modifier = Modifier.weight(1f))
                 state.error != null && state.visiblePapers.isEmpty() -> ErrorContent(
                     message = state.error ?: "Unknown error",
                     onRetry = { viewModel.retry(settings.activeCategory) },
+                    modifier = Modifier.weight(1f),
                 )
                 else -> FeedContent(
-                    state = state,
+                    papers = state.visiblePapers,
                     savedIds = savedIds,
+                    canShowLoadMore = state.canShowLoadMore,
+                    isPrefetching = state.isPrefetching,
+                    hasBufferedPapers = state.buffer.isNotEmpty(),
                     onPaperClick = onPaperClick,
                     onLoadMore = viewModel::loadMore,
                     onToggleSave = viewModel::toggleSave,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -189,37 +200,43 @@ private fun ErrorContent(
 
 @Composable
 private fun FeedContent(
-    state: FeedState,
+    papers: List<Paper>,
     savedIds: Set<String>,
+    canShowLoadMore: Boolean,
+    isPrefetching: Boolean,
+    hasBufferedPapers: Boolean,
     onPaperClick: (Paper) -> Unit,
     onLoadMore: () -> Unit,
     onToggleSave: (Paper) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md),
-        ) {
-        items(items = state.visiblePapers, key = { it.id }) { paper ->
-            PaperCard(
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Spacing.md),
+    ) {
+        items(
+            items = papers,
+            key = { it.id },
+            contentType = { PAPER_CONTENT_TYPE },
+        ) { paper ->
+            FeedPaperItem(
                 paper = paper,
                 isSaved = paper.id in savedIds,
-                onClick = { onPaperClick(paper) },
-                onToggleSave = { onToggleSave(paper) },
+                onPaperClick = onPaperClick,
+                onToggleSave = onToggleSave,
             )
         }
 
-        if (state.canShowLoadMore) {
-            item {
+        if (canShowLoadMore) {
+            item(contentType = LOAD_MORE_CONTENT_TYPE) {
                 TextButton(
                     onClick = onLoadMore,
-                    enabled = !state.isPrefetching || state.buffer.isNotEmpty(),
+                    enabled = !isPrefetching || hasBufferedPapers,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(Spacing.sm),
                 ) {
-                    if (state.isPrefetching && state.buffer.isEmpty()) {
+                    if (isPrefetching && !hasBufferedPapers) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
@@ -234,9 +251,45 @@ private fun FeedContent(
                 }
             }
         }
-    } // LazyColumn
-    } // Box
+    }
 }
+
+@Composable
+private fun FeedPaperItem(
+    paper: Paper,
+    isSaved: Boolean,
+    onPaperClick: (Paper) -> Unit,
+    onToggleSave: (Paper) -> Unit,
+) {
+    val display = remember(paper.id, paper.title, paper.authors, paper.submittedDate, paper.abstract, paper.comment) {
+        PaperCardDisplay(
+            authorsText = when {
+                paper.authors.size <= 3 -> paper.authors.joinToString(", ")
+                else -> "${paper.authors.take(3).joinToString(", ")} et al."
+            },
+            dateText = paper.submittedDate.take(10),
+            abstractPreview = paper.abstract.take(ABSTRACT_PREVIEW_LENGTH) +
+                if (paper.abstract.length > ABSTRACT_PREVIEW_LENGTH) "…" else "",
+            comment = paper.comment?.takeIf { it.isNotBlank() },
+        )
+    }
+    val onClick = remember(paper.id, onPaperClick) { { onPaperClick(paper) } }
+    val onSave = remember(paper.id, onToggleSave) { { onToggleSave(paper) } }
+    PaperCard(
+        title = paper.title,
+        display = display,
+        isSaved = isSaved,
+        onClick = onClick,
+        onToggleSave = onSave,
+    )
+}
+
+private data class PaperCardDisplay(
+    val authorsText: String,
+    val dateText: String,
+    val abstractPreview: String,
+    val comment: String?,
+)
 
 @Composable
 internal fun PaperCard(
@@ -246,23 +299,52 @@ internal fun PaperCard(
     onToggleSave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val display = remember(paper.id, paper.authors, paper.submittedDate, paper.abstract, paper.comment) {
+        PaperCardDisplay(
+            authorsText = when {
+                paper.authors.size <= 3 -> paper.authors.joinToString(", ")
+                else -> "${paper.authors.take(3).joinToString(", ")} et al."
+            },
+            dateText = paper.submittedDate.take(10),
+            abstractPreview = paper.abstract.take(ABSTRACT_PREVIEW_LENGTH) +
+                if (paper.abstract.length > ABSTRACT_PREVIEW_LENGTH) "…" else "",
+            comment = paper.comment?.takeIf { it.isNotBlank() },
+        )
+    }
+    PaperCard(
+        title = paper.title,
+        display = display,
+        isSaved = isSaved,
+        onClick = onClick,
+        onToggleSave = onToggleSave,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun PaperCard(
+    title: String,
+    display: PaperCardDisplay,
+    isSaved: Boolean,
+    onClick: () -> Unit,
+    onToggleSave: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val shape = RoundedCornerShape(12.dp)
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), shape)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surface, shape)
-            .padding(Spacing.md),
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Column {
+        Column(modifier = Modifier.padding(Spacing.md)) {
             Row(verticalAlignment = Alignment.Top) {
                 Text(
-                    text = paper.title,
+                    text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 3,
+                    maxLines = TITLE_MAX_LINES,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
@@ -271,26 +353,23 @@ internal fun PaperCard(
                     imageVector = if (isSaved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
                     contentDescription = if (isSaved) "Remove from saved" else "Save paper",
                     tint = if (isSaved) MaterialTheme.colorScheme.onSurface
-                           else MaterialTheme.colorScheme.onSurfaceVariant,
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(24.dp)
-                        .clickable(onClick = onToggleSave),
+                        .clickableWithoutRipple(onToggleSave),
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = remember(paper) {
-                    when {
-                        paper.authors.size <= 3 -> paper.authors.joinToString(", ")
-                        else -> "${paper.authors.take(3).joinToString(", ")} et al."
-                    }
-                },
+                text = display.authorsText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Spacer(modifier = Modifier.height(Spacing.sm))
             Text(
-                text = remember(paper) { paper.submittedDate.take(10) },
+                text = display.dateText,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
@@ -300,23 +379,31 @@ internal fun PaperCard(
                     )
                     .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
             )
-            if (!paper.comment.isNullOrBlank()) {
+            if (display.comment != null) {
                 Spacer(modifier = Modifier.height(Spacing.xs))
                 Text(
-                    text = paper.comment,
+                    text = display.comment,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = remember(paper) {
-                    paper.abstract.take(200) + if (paper.abstract.length > 200) "…" else ""
-                },
+                text = display.abstractPreview,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 4,
+                maxLines = ABSTRACT_MAX_LINES,
                 overflow = TextOverflow.Ellipsis,
             )
         }
     }
 }
+
+@Composable
+private fun Modifier.clickableWithoutRipple(onClick: () -> Unit): Modifier =
+    clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick,
+    )

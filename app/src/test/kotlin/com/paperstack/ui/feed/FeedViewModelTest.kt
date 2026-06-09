@@ -221,10 +221,7 @@ class FeedViewModelTest {
 
             viewModel.loadMore()
 
-            // buffer is cleared immediately (before prefetch completes)
-            // but might be refilled after advanceUntilIdle
-            // At least the first state should have empty buffer
-            assertTrue(viewModel.state.value.buffer.isEmpty() || viewModel.state.value.buffer.isNotEmpty())
+            assertTrue(viewModel.state.value.buffer.isEmpty())
         }
 
         @Test
@@ -232,7 +229,6 @@ class FeedViewModelTest {
             coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.success(makeResult((31..60).map { makePaper("$it") }, 100))
 
-            // loadMore executes immediately: buffer → visible, isPrefetching = true
             viewModel.loadMore()
             assertTrue(viewModel.state.value.isPrefetching)
         }

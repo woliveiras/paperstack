@@ -28,7 +28,6 @@ import javax.inject.Inject
 
 private const val PAGE_SIZE = 30
 private const val VISIBLE_SIZE = 15
-
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val arxivApiService: ArxivApiService,
@@ -133,9 +132,12 @@ class FeedViewModel @Inject constructor(
 
     fun loadMore() {
         val current = _state.value
-        if (current.isLoading || current.isPrefetching || current.buffer.isEmpty() && current.nextStart >= current.totalResults) return
+        if (current.isLoading || current.isPrefetching ||
+            current.buffer.isEmpty() && current.nextStart >= current.totalResults
+        ) {
+            return
+        }
 
-        // Show buffered papers immediately
         _state.update { state ->
             state.copy(
                 visiblePapers = state.visiblePapers + state.buffer,
@@ -144,9 +146,7 @@ class FeedViewModel @Inject constructor(
             )
         }
 
-        // Prefetch next batch in background
-        val category = _state.value.visiblePapers
-            .firstOrNull()?.primaryCategory ?: return
+        val category = _state.value.visiblePapers.firstOrNull()?.primaryCategory ?: return
 
         prefetchJob?.cancel()
         prefetchJob = viewModelScope.launch {
