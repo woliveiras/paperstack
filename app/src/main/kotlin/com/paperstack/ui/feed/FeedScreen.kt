@@ -2,7 +2,9 @@ package com.paperstack.ui.feed
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,40 +17,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import java.time.LocalDate
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -62,7 +56,6 @@ import com.paperstack.domain.model.Settings
 import com.paperstack.ui.theme.Spacing
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     settings: Settings,
@@ -73,6 +66,7 @@ fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val savedIds by viewModel.savedIds.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -107,8 +101,7 @@ fun FeedScreen(
                 )
                 else -> FeedContent(
                     state = state,
-                    isRefreshing = state.isLoading && state.visiblePapers.isNotEmpty(),
-                    onRefresh = { viewModel.refresh(settings.activeCategory) },
+                    savedIds = savedIds,
                     onPaperClick = onPaperClick,
                     onLoadMore = viewModel::loadMore,
                     onToggleSave = viewModel::toggleSave,
@@ -194,33 +187,25 @@ private fun ErrorContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FeedContent(
     state: FeedState,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
+    savedIds: Set<String>,
     onPaperClick: (Paper) -> Unit,
     onLoadMore: () -> Unit,
     onToggleSave: (Paper) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val pullState = rememberPullToRefreshState()
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        state = pullState,
-        modifier = modifier.fillMaxSize(),
-    ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(Spacing.md),
-        verticalArrangement = Arrangement.spacedBy(Spacing.md),
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+        ) {
         items(items = state.visiblePapers, key = { it.id }) { paper ->
             PaperCard(
                 paper = paper,
-                isSaved = paper.id in state.savedIds,
+                isSaved = paper.id in savedIds,
                 onClick = { onPaperClick(paper) },
                 onToggleSave = { onToggleSave(paper) },
             )
@@ -250,7 +235,7 @@ private fun FeedContent(
             }
         }
     } // LazyColumn
-    } // PullToRefreshBox
+    } // Box
 }
 
 @Composable
@@ -261,17 +246,17 @@ internal fun PaperCard(
     onToggleSave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedCard(
+    val shape = RoundedCornerShape(12.dp)
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
+            .clickable(onClick = onClick)
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), shape)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface, shape)
+            .padding(Spacing.md),
     ) {
-        Column(modifier = Modifier.padding(Spacing.md)) {
+        Column {
             Row(verticalAlignment = Alignment.Top) {
                 Text(
                     text = paper.title,
@@ -293,30 +278,28 @@ internal fun PaperCard(
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
-
-            val authorsText = when {
-                paper.authors.size <= 3 -> paper.authors.joinToString(", ")
-                else -> "${paper.authors.take(3).joinToString(", ")} et al."
-            }
             Text(
-                text = authorsText,
+                text = remember(paper) {
+                    when {
+                        paper.authors.size <= 3 -> paper.authors.joinToString(", ")
+                        else -> "${paper.authors.take(3).joinToString(", ")} et al."
+                    }
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-
             Spacer(modifier = Modifier.height(Spacing.sm))
-            Surface(
-                shape = RoundedCornerShape(4.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-                Text(
-                    text = paper.submittedDate.take(10),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs),
-                )
-            }
-
+            Text(
+                text = remember(paper) { paper.submittedDate.take(10) },
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(4.dp),
+                    )
+                    .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+            )
             if (!paper.comment.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(Spacing.xs))
                 Text(
@@ -325,10 +308,11 @@ internal fun PaperCard(
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = paper.abstract.take(200) + if (paper.abstract.length > 200) "…" else "",
+                text = remember(paper) {
+                    paper.abstract.take(200) + if (paper.abstract.length > 200) "…" else ""
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,

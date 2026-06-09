@@ -36,12 +36,15 @@ class FeedViewModel @Inject constructor(
     private val _state = MutableStateFlow(FeedState())
     val state: StateFlow<FeedState> = _state.asStateFlow()
 
+    private val _savedIds = MutableStateFlow<Set<String>>(emptySet())
+    val savedIds: StateFlow<Set<String>> = _savedIds.asStateFlow()
+
     private val cache = mutableMapOf<String, FeedState>()
     private var currentCategory: String = ""
 
     init {
         savedPaperRepository.observeAll()
-            .onEach { saved -> _state.update { it.copy(savedIds = saved.map { p -> p.id }.toSet()) } }
+            .onEach { saved -> _savedIds.value = saved.map { p -> p.id }.toSet() }
             .launchIn(viewModelScope)
 
         settingsRepository.settings
@@ -58,11 +61,10 @@ class FeedViewModel @Inject constructor(
 
         val cached = cache[category]
         if (cached != null) {
-            _state.value = cached.copy(savedIds = _state.value.savedIds)
+            _state.value = cached
         } else {
             _state.value = FeedState(
                 isLoading = true,
-                savedIds = _state.value.savedIds,
             )
             fetchInitial(category)
         }
@@ -181,14 +183,11 @@ class FeedViewModel @Inject constructor(
         if (_state.value.isLoading) return
         cache.remove(category)
         val dates = _state.value
-        _state.update {
-            FeedState(
-                isLoading = true,
-                savedIds = dates.savedIds,
-                fromDate = dates.fromDate,
-                toDate = dates.toDate,
-            )
-        }
+        _state.value = FeedState(
+            isLoading = true,
+            fromDate = dates.fromDate,
+            toDate = dates.toDate,
+        )
         fetchInitial(category)
     }
 
@@ -197,15 +196,12 @@ class FeedViewModel @Inject constructor(
         if (current.fromDate == fromDate && current.toDate == toDate) return
 
         cache.remove(currentCategory)
-        _state.update {
-            FeedState(
-                isLoading = true,
-                savedIds = it.savedIds,
-                fromDate = fromDate,
-                toDate = toDate,
-                sortOrder = it.sortOrder,
-            )
-        }
+        _state.value = FeedState(
+            isLoading = true,
+            fromDate = fromDate,
+            toDate = toDate,
+            sortOrder = _state.value.sortOrder,
+        )
         fetchInitial(currentCategory)
     }
 
@@ -214,15 +210,12 @@ class FeedViewModel @Inject constructor(
         if (current.fromDate == null && current.toDate == null) return
 
         cache.remove(currentCategory)
-        _state.update {
-            FeedState(
-                isLoading = true,
-                savedIds = it.savedIds,
-                fromDate = null,
-                toDate = null,
-                sortOrder = it.sortOrder,
-            )
-        }
+        _state.value = FeedState(
+            isLoading = true,
+            fromDate = null,
+            toDate = null,
+            sortOrder = _state.value.sortOrder,
+        )
         fetchInitial(currentCategory)
     }
 
@@ -242,7 +235,7 @@ class FeedViewModel @Inject constructor(
 
     fun toggleSave(paper: Paper) {
         viewModelScope.launch {
-            if (_state.value.savedIds.contains(paper.id)) {
+            if (_savedIds.value.contains(paper.id)) {
                 savedPaperRepository.remove(paper.id)
             } else {
                 savedPaperRepository.save(paper)

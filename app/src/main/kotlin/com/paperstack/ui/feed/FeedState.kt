@@ -12,7 +12,6 @@ data class FeedState(
     val isLoading: Boolean = false,
     val isPrefetching: Boolean = false,
     val error: String? = null,
-    val savedIds: Set<String> = emptySet(),
     val fromDate: LocalDate? = null,
     val toDate: LocalDate? = null,
     val sortOrder: SortOrder = SortOrder.SUBMITTED_DATE,
