@@ -9,3 +9,6 @@
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt
 -keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
+
+# Keep @Serializable data classes (names used by Json.encodeToString/decodeFromString)
+-keep class com.paperstack.domain.model.** { *; }

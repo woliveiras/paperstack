@@ -25,7 +25,7 @@ class ArxivApiServiceImplTest {
     private val service = ArxivApiServiceImpl(client)
 
     private val fixturesDir = java.io.File(
-        "src/test/kotlin/com/paperstack/data/remote/__fixtures__",
+        "src/test/resources/com/paperstack/data/remote/__fixtures__",
     )
 
     private fun loadFixture(name: String): String =

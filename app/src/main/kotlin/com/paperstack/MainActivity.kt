@@ -43,6 +43,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.paperstack.data.repository.PaperNavigationCache
 import com.paperstack.ui.detail.DetailScreen
 import com.paperstack.ui.feed.FeedScreen
 import com.paperstack.ui.feed.FeedViewModel
@@ -54,13 +55,14 @@ import com.paperstack.ui.saved.SavedScreen
 import com.paperstack.ui.theme.PaperStackTheme
 import com.paperstack.ui.theme.Spacing
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 private val bottomNavRoutes = listOf("feed_home", "saved")
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @javax.inject.Inject
+    lateinit var paperNavigationCache: PaperNavigationCache
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,8 +125,8 @@ class MainActivity : ComponentActivity() {
                                             settings = s,
                                             viewModel = feedViewModel,
                                             onPaperClick = { paper ->
-                                                val paperJson = Uri.encode(Json.encodeToString(paper))
-                                                navController.navigate("detail/$paperJson")
+                                                paperNavigationCache.put(paper)
+                                                navController.navigate("detail/${paper.id}")
                                             },
                                             onAddCategories = {
                                                 navController.navigate("add-categories")
@@ -165,14 +167,14 @@ class MainActivity : ComponentActivity() {
                             composable("saved") {
                                 SavedScreen(
                                     onPaperClick = { paper ->
-                                        val paperJson = Uri.encode(Json.encodeToString(paper))
-                                        navController.navigate("detail/$paperJson")
+                                        paperNavigationCache.put(paper)
+                                        navController.navigate("detail/${paper.id}")
                                     },
                                 )
                             }
                             composable(
-                                route = "detail/{paperJson}",
-                                arguments = listOf(navArgument("paperJson") { type = NavType.StringType }),
+                                route = "detail/{paperId}",
+                                arguments = listOf(navArgument("paperId") { type = NavType.StringType }),
                             ) {
                                 DetailScreen(onBack = { navController.popBackStack() })
                             }

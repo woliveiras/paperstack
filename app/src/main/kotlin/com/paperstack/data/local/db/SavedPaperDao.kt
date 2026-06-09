@@ -15,6 +15,9 @@ interface SavedPaperDao {
     @Query("SELECT EXISTS(SELECT 1 FROM saved_papers WHERE id = :id)")
     fun observeIsSaved(id: String): Flow<Boolean>
 
+    @Query("SELECT * FROM saved_papers WHERE id = :id")
+    suspend fun getById(id: String): SavedPaperEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(paper: SavedPaperEntity)
 

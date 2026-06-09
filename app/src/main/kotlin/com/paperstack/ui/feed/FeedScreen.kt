@@ -96,7 +96,7 @@ fun FeedScreen(
             when {
                 state.isLoading -> LoadingContent()
                 state.error != null && state.visiblePapers.isEmpty() -> ErrorContent(
-                    message = state.error!!,
+                    message = state.error ?: "Unknown error",
                     onRetry = { viewModel.retry(settings.activeCategory) },
                 )
                 else -> FeedContent(

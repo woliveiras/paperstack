@@ -9,10 +9,13 @@ import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.data.repository.SettingsRepository
 import com.paperstack.domain.model.Paper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -41,6 +44,8 @@ class FeedViewModel @Inject constructor(
 
     private val cache = mutableMapOf<String, FeedState>()
     private var currentCategory: String = ""
+    private var fetchJob: Job? = null
+    private var prefetchJob: Job? = null
 
     init {
         savedPaperRepository.observeAll()
@@ -58,6 +63,9 @@ class FeedViewModel @Inject constructor(
         if (category == currentCategory) return
         if (currentCategory.isNotEmpty()) cache[currentCategory] = _state.value
         currentCategory = category
+
+        fetchJob?.cancel()
+        fetchJob = null
 
         val cached = cache[category]
         if (cached != null) {
@@ -86,7 +94,7 @@ class FeedViewModel @Inject constructor(
 
     private fun fetchInitial(category: String) {
         val state = _state.value
-        viewModelScope.launch {
+        fetchJob = viewModelScope.launch {
             val result = arxivApiService.fetchPapers(
                 FetchPapersParams(
                     category = category,
@@ -125,7 +133,7 @@ class FeedViewModel @Inject constructor(
 
     fun loadMore() {
         val current = _state.value
-        if (current.isLoading || current.buffer.isEmpty() && current.nextStart >= current.totalResults) return
+        if (current.isLoading || current.isPrefetching || current.buffer.isEmpty() && current.nextStart >= current.totalResults) return
 
         // Show buffered papers immediately
         _state.update { state ->
@@ -140,7 +148,8 @@ class FeedViewModel @Inject constructor(
         val category = _state.value.visiblePapers
             .firstOrNull()?.primaryCategory ?: return
 
-        viewModelScope.launch {
+        prefetchJob?.cancel()
+        prefetchJob = viewModelScope.launch {
             val result = arxivApiService.fetchPapers(
                 FetchPapersParams(
                     category = category,

@@ -232,14 +232,9 @@ class FeedViewModelTest {
             coEvery { arxivApiService.fetchPapers(any()) } returns
                 Result.success(makeResult((31..60).map { makePaper("$it") }, 100))
 
-            viewModel.state.test {
-                skipItems(1) // current state
-                viewModel.loadMore()
-                val stateAfterLoadMore = awaitItem()
-                // Buffer moved to visible, isPrefetching = true
-                assertTrue(stateAfterLoadMore.isPrefetching || !stateAfterLoadMore.isPrefetching)
-                cancelAndIgnoreRemainingEvents()
-            }
+            // loadMore executes immediately: buffer → visible, isPrefetching = true
+            viewModel.loadMore()
+            assertTrue(viewModel.state.value.isPrefetching)
         }
 
         @Test

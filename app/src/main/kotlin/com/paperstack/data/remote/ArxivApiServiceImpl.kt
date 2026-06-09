@@ -10,6 +10,7 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,8 +23,7 @@ class ArxivApiServiceImpl @Inject constructor(
     private val client: OkHttpClient,
 ) : ArxivApiService {
 
-    @Volatile
-    private var lastRequestTimeMs: Long = 0L
+    private val lastRequestTimeMs = AtomicLong(0L)
 
     override suspend fun fetchPapers(params: FetchPapersParams): Result<FetchPapersResult> {
         enforceRateLimit()
@@ -37,7 +37,9 @@ class ArxivApiServiceImpl @Inject constructor(
     }
 
     private suspend fun enforceRateLimit() {
-        val elapsed = System.currentTimeMillis() - lastRequestTimeMs
+        val now = System.currentTimeMillis()
+        val last = lastRequestTimeMs.get()
+        val elapsed = now - last
         if (elapsed < RATE_LIMIT_MS) delay(RATE_LIMIT_MS - elapsed)
     }
 
@@ -46,7 +48,7 @@ class ArxivApiServiceImpl @Inject constructor(
         var backoffMs = 1_000L
         while (attempt < MAX_RETRIES) {
             val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
-            lastRequestTimeMs = System.currentTimeMillis()
+            lastRequestTimeMs.set(System.currentTimeMillis())
             try {
                 when (response.code) {
                     200 -> {

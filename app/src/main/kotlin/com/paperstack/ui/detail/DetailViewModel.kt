@@ -6,6 +6,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.paperstack.data.repository.PaperNavigationCache
 import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.domain.model.Paper
 import com.paperstack.di.IoDispatcher
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -30,6 +30,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val paperNavigationCache: PaperNavigationCache,
     private val savedPaperRepository: SavedPaperRepository,
     @ApplicationContext private val appContext: Context,
     private val okHttpClient: OkHttpClient,
@@ -40,19 +41,23 @@ class DetailViewModel @Inject constructor(
     val state: StateFlow<DetailState> = _state.asStateFlow()
 
     init {
-        val paperJson: String = checkNotNull(savedStateHandle["paperJson"])
-        val paper: Paper = Json.decodeFromString(paperJson)
+        val paperId: String = checkNotNull(savedStateHandle["paperId"])
+        val paper = paperNavigationCache.get(paperId)
+            ?: throw IllegalStateException("Paper $paperId not found in navigation cache")
+
         _state.update { it.copy(paper = paper) }
 
         savedPaperRepository.observeIsSaved(paper.id)
             .onEach { isSaved -> _state.update { it.copy(isSaved = isSaved) } }
             .launchIn(viewModelScope)
 
-        checkIfAlreadyDownloaded(paper)
+        viewModelScope.launch {
+            checkIfAlreadyDownloaded(paperId)
+        }
     }
 
-    private fun checkIfAlreadyDownloaded(paper: Paper) {
-        val file = localFile(paper.id)
+    private suspend fun checkIfAlreadyDownloaded(paperId: String) {
+        val file = withContext(ioDispatcher) { localFile(paperId) }
         if (file.exists()) {
             _state.update { it.copy(downloadState = DownloadState.Downloaded) }
         }

@@ -2,8 +2,11 @@ package com.paperstack.data.local.db
 
 import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.domain.model.Paper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -15,10 +18,17 @@ class RoomSavedPaperRepository @Inject constructor(
 ) : SavedPaperRepository {
 
     override fun observeAll(): Flow<List<Paper>> =
-        dao.observeAll().map { entities -> entities.map { it.toDomain() } }
+        dao.observeAll()
+            .map { entities -> entities.map { it.toDomain() } }
+            .flowOn(Dispatchers.IO)
 
     override fun observeIsSaved(id: String): Flow<Boolean> =
         dao.observeIsSaved(id)
+
+    override suspend fun getById(id: String): Paper? =
+        withContext(Dispatchers.IO) {
+            dao.getById(id)?.toDomain()
+        }
 
     override suspend fun save(paper: Paper) =
         dao.insert(paper.toEntity())

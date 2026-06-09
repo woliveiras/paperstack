@@ -3,6 +3,7 @@ package com.paperstack.ui.detail
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import com.paperstack.data.repository.PaperNavigationCache
 import com.paperstack.data.repository.SavedPaperRepository
 import com.paperstack.domain.model.Paper
 import io.mockk.coVerify
@@ -45,6 +46,7 @@ class DetailViewModelTest {
     private val mockWebServer = MockWebServer()
     private val okHttpClient = OkHttpClient()
     private val appContext = mockk<Context>(relaxed = true)
+    private val navigationCache = mockk<PaperNavigationCache>()
 
     @TempDir
     lateinit var tempDir: File
@@ -67,7 +69,8 @@ class DetailViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { savedPaperRepository.observeIsSaved(any()) } returns isSavedFlow
         every { appContext.filesDir } returns tempDir
-        every { appContext.packageName } returns "com.paperstack"
+        every { appContext.packageName } returns "com.woliveiras.paperstack"
+        every { navigationCache.get(any()) } returns paper
         mockWebServer.start()
     }
 
@@ -78,8 +81,9 @@ class DetailViewModelTest {
     }
 
     private fun createViewModel(overridePaper: Paper = paper): DetailViewModel {
-        val handle = SavedStateHandle(mapOf("paperJson" to Json.encodeToString(overridePaper)))
-        return DetailViewModel(handle, savedPaperRepository, appContext, okHttpClient, testDispatcher)
+        every { navigationCache.get(overridePaper.id) } returns overridePaper
+        val handle = SavedStateHandle(mapOf("paperId" to overridePaper.id))
+        return DetailViewModel(handle, navigationCache, savedPaperRepository, appContext, okHttpClient, testDispatcher)
     }
 
     @Nested
