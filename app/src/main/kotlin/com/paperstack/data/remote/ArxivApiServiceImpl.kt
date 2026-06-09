@@ -71,13 +71,25 @@ class ArxivApiServiceImpl @Inject constructor(
     }
 
     internal fun buildUrl(params: FetchPapersParams): String {
-        val query = "cat:${params.category}"
+        val query = buildString {
+            append("cat:${params.category}")
+            if (params.fromDate != null || params.toDate != null) {
+                val from = params.fromDate?.let { it.replace("-", "") + "0000" } ?: "000001010000"
+                val to = params.toDate?.let { it.replace("-", "") + "2359" } ?: "999912312359"
+                append("+AND+submittedDate:[$from+TO+$to]")
+            }
+        }
+        val wrappedQuery = if (params.fromDate != null || params.toDate != null) {
+            "($query)"
+        } else {
+            query
+        }
         val sortBy = when (params.sortOrder) {
             SortOrder.RELEVANCE -> "relevance"
             SortOrder.SUBMITTED_DATE -> "submittedDate"
             SortOrder.LAST_UPDATED_DATE -> "lastUpdatedDate"
         }
-        return "$BASE_URL?search_query=$query" +
+        return "$BASE_URL?search_query=$wrappedQuery" +
             "&sortBy=$sortBy" +
             "&sortOrder=descending" +
             "&start=${params.start}" +

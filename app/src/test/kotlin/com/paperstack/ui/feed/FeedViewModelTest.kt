@@ -1,5 +1,6 @@
 package com.paperstack.ui.feed
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.paperstack.data.remote.ArxivApiService
 import com.paperstack.data.remote.FetchPapersParams
@@ -42,6 +43,7 @@ class FeedViewModelTest {
 
     private val settingsFlow = MutableStateFlow<Settings?>(null)
 
+    private val savedStateHandle = SavedStateHandle()
     private lateinit var viewModel: FeedViewModel
 
     private fun makePaper(id: String, primaryCategory: String = "cs.AI") = Paper(
@@ -74,7 +76,7 @@ class FeedViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(): FeedViewModel = FeedViewModel(arxivApiService, settingsRepository, savedPaperRepository)
+    private fun createViewModel(): FeedViewModel = FeedViewModel(savedStateHandle, arxivApiService, settingsRepository, savedPaperRepository)
 
     @Nested
     inner class `Initial state` {

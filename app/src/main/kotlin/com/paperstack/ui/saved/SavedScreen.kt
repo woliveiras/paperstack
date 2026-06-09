@@ -132,7 +132,7 @@ private fun SavedList(
         contentPadding = PaddingValues(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
-        items(items = papers, key = { it.id }) { paper ->
+        items(items = papers, key = { it.id }, contentType = { "saved_paper" }) { paper ->
             PaperCard(
                 paper = paper,
                 isSaved = true,

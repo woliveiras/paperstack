@@ -21,7 +21,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import okhttp3.Cache
 import okhttp3.OkHttpClient
+import java.io.File
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -62,14 +64,19 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor { chain ->
-            val request = chain.request().newBuilder()
-                .header("User-Agent", "PaperStack/1.0 (contact@paperstack.app)")
-                .build()
-            chain.proceed(request)
-        }
-        .build()
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
+        val cacheDir = File(context.cacheDir, "okhttp")
+        val cache = Cache(cacheDir, 10L * 1024 * 1024) // 10 MB
+        return OkHttpClient.Builder()
+            .cache(cache)
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("User-Agent", "PaperStack/1.0 (contact@paperstack.app)")
+                    .build()
+                chain.proceed(request)
+            }
+            .build()
+    }
 
     @Provides
     @Singleton
